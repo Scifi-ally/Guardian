@@ -1,0 +1,1381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Guardian - Women's Safety App</title>
+    <link href="https://fonts.cdnfonts.com/css/geist-mono" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA41wHVKnsb1RNhcftpHS5qNwvYz59nXIE&libraries=places" async defer></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; outline: none; font-family: 'Geist Mono', monospace; -webkit-tap-highlight-color: transparent; }
+        :root {
+            --primary: #1E3A8A;
+            --sos: #D32F2F;
+            --black: #000000;
+            --white: #FFFFFF;
+            --gray-100: #F5F5F5;
+            --gray-200: #E0E0E0;
+            --gray-300: #CCCCCC;
+            --gray-500: #777777;
+            --gray-700: #333333;
+            --gray-900: #1A1A1A;
+            --border-radius: 12px;
+        }
+        body {
+            background-color: var(--white); color: var(--black); min-height: 100vh; position: relative;
+            overflow: hidden; padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom);
+            padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right);
+        }
+        .container { padding: 20px; max-width: 100%; }
+        .flex { display: flex; } .flex-col { flex-direction: column; } .items-center { align-items: center; }
+        .justify-center { justify-content: center; } .justify-between { justify-content: space-between; }
+        .text-center { text-align: center; } .text-primary { color: var(--primary); } .text-sos { color: var(--sos); }
+        .text-gray { color: var(--gray-500); } .text-white { color: var(--white); }
+        .bg-primary { background-color: var(--primary); } .bg-sos { background-color: var(--sos); }
+        .rounded { border-radius: var(--border-radius); } .rounded-full { border-radius: 50%; }
+        .shadow { box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1); }
+        .w-full { width: 100%; } .mr-2 { margin-right: 8px; } .mb-2 { margin-bottom: 8px; }
+        .mb-4 { margin-bottom: 16px; } .mb-6 { margin-bottom: 24px; } .mt-2 { margin-top: 8px; }
+        .mt-4 { margin-top: 16px; } .p-2 { padding: 8px; } .p-4 { padding: 16px; }
+        .pt-6 { padding-top: 24px; }
+        .hidden { display: none !important; }
+        .page {
+            position: absolute; top: 0; left: 0; width: 100%; min-height: 100vh; padding-bottom: 80px;
+            opacity: 0; transform: translateX(100%); z-index: 1; overflow-y: hidden;
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;
+        }
+        .page.active {
+            opacity: 1; transform: translateX(0); z-index: 10;
+        }
+        .page.exiting {
+            transform: translateX(-100%); opacity: 0;
+        }
+        .form-group { margin-bottom: 20px; }
+        .form-label { display: block; font-size: 16px; font-weight: 500; margin-bottom: 6px; color: var(--black); }
+        .form-input, .form-select {
+            width: 100%; padding: 14px 16px; border: 1px solid var(--gray-200); border-radius: var(--border-radius);
+            font-size: 18px; background-color: var(--white); color: var(--black); transition: border-color 0.3s ease;
+        }
+        .form-input:focus, .form-select:focus { border-color: var(--gray-700); }
+        .form-input::placeholder { color: var(--gray-500); font-size: 16px; }
+        .form-error { color: var(--gray-700); font-size: 12px; margin-top: 4px; min-height: 18px; }
+        .form-help { color: var(--gray-500); font-size: 12px; margin-top: 4px; }
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center; padding: 14px 20px;
+            border-radius: var(--border-radius); font-weight: 500; cursor: pointer; border: none;
+            font-size: 18px; transition: transform 0.2s ease, opacity 0.3s ease; min-width: 48px; min-height: 48px;
+        }
+        .btn:hover { transform: scale(1.05); opacity: 0.9; }
+        .btn-primary { background-color: var(--primary); color: var(--white); }
+        .btn-sos { background-color: var(--sos); color: var(--white); }
+        .btn-outline { background-color: var(--white); border: 1px solid var(--gray-200); color: var(--black); }
+        .btn-icon {
+            background: none; border: none; color: var(--black); cursor: pointer; padding: 12px;
+            display: flex; align-items: center; justify-content: center; border-radius: 50%;
+            transition: background-color 0.3s ease, transform 0.2s ease; min-width: 48px; min-height: 48px;
+        }
+        .btn-icon:hover { background-color: var(--gray-100); transform: scale(1.1); }
+        .material-icons { font-size: 24px; }
+        .auth-container {
+            min-height: 100vh; display: flex; flex-direction: column; justify-content: center;
+            padding: 32px 20px; background-color: var(--white);
+        }
+        .auth-logo { text-align: center; margin-bottom: 40px; }
+        .auth-logo h1 { font-size: 32px; font-weight: 700; color: var(--black); margin-bottom: 8px; }
+        .auth-logo p { color: var(--gray-500); font-size: 16px; }
+        .auth-link { color: var(--gray-700); text-decoration: none; font-weight: 500; transition: color 0.3s ease; }
+        .auth-link:hover { color: var(--black); text-decoration: underline; }
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; right: 0; height: 80px; background-color: var(--white);
+            display: flex; justify-content: space-around; align-items: center; box-shadow: 0 -1px 6px rgba(0, 0, 0, 0.1);
+            z-index: 100; transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .bottom-nav.hidden { transform: translateY(100%); }
+        .bottom-nav-item {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            text-decoration: none; color: var(--gray-500); font-size: 10px; padding: 8px 0;
+            width: 25%; transition: color 0.3s ease, transform 0.2s ease; position: relative;
+        }
+        .bottom-nav-item:hover { transform: scale(1.1); }
+        .bottom-nav-item.active { color: var(--black); }
+        .bottom-nav-item .material-icons { font-size: 28px; margin-bottom: 4px; }
+        .sos-nav-item { width: 50%; margin-top: -32px; }
+        .sos-nav-button {
+            background: linear-gradient(135deg, var(--sos), #B71C1C); color: var(--white); width: 72px; height: 72px;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 4px;
+            box-shadow: 0 6px 16px rgba(211, 47, 47, 0.4); transition: transform 0.3s ease;
+        }
+        .sos-nav-button:hover { transform: scale(1.15); opacity: 0.9; }
+        .sos-nav-button .material-icons { font-size: 28px; margin-bottom: 0; }
+        .map-container {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 80px; width: 100%; height: calc(100vh - 80px);
+            overflow: hidden; z-index: 0;
+        }
+        #map { position: absolute; top: 0; bottom: 0; left: 0; right: 0; z-index: 1; touch-action: none; }
+        .map-search-container {
+            position: absolute; top: 20px; left: 20px; right: 20px; background: var(--white);
+            border-radius: 12px; padding: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); z-index: 100;
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .map-search { display: flex; align-items: center; padding: 4px; }
+        .search-icon { display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; color: var(--gray-500); }
+        .map-search input { flex: 1; padding: 12px; border: none; font-size: 18px; background-color: transparent; color: var(--black); }
+        .map-search input::placeholder { color: var(--gray-500); }
+        .location-btn { width: 48px; height: 48px; background: none; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--gray-500); transition: transform 0.2s ease; }
+        .location-btn:hover { transform: scale(1.1); }
+        .route-search-btn { width: 100%; height: 48px; background-color: var(--primary); color: var(--white); border: none; border-radius: var(--border-radius); cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: 500; transition: transform 0.2s ease; }
+        .route-search-btn:hover { transform: scale(1.05); }
+        .route-search-btn .material-icons { margin-right: 8px; }
+        .route-btn-text { font-size: 18px; }
+        .location-info {
+            position: fixed; left: 0; right: 0; bottom: 80px; background: var(--white);
+            border-radius: 16px 16px 0 0; padding: 16px; box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+            z-index: 150; height: auto; max-height: 50vh; overflow-y: auto;
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); transform: translateY(100%);
+            display: none;
+        }
+        .location-info.visible {
+            transform: translateY(0); display: block;
+        }
+        .location-info h3 { font-size: 20px; font-weight: 600; margin-bottom: 8px; }
+        .location-info p { font-size: 14px; color: var(--gray-500); margin-bottom: 12px; }
+        .location-actions { display: flex; gap: 12px; justify-content: space-between; }
+        .route-options { margin: 12px 0; }
+        .route-mode-selector { display: flex; justify-content: center; background-color: var(--gray-100); border-radius: var(--border-radius); padding: 4px; width: fit-content; margin: 0 auto 12px; border: 1px solid var(--gray-200); }
+        .route-mode-btn { border: none; background: none; border-radius: 6px; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; margin: 0 4px; cursor: pointer; color: var(--gray-500); transition: background-color 0.3s ease, transform 0.2s ease; }
+        .route-mode-btn:hover { transform: scale(1.1); }
+        .route-mode-btn.active { background-color: var(--white); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); color: var(--black); }
+        .route-mode-btn .material-icons { font-size: 24px; }
+        .alternative-routes { margin-top: 12px; }
+        .route-option { display: flex; align-items: center; padding: 10px; border: 1px solid var(--gray-200); border-radius: var(--border-radius); margin-bottom: 8px; cursor: pointer; background-color: var(--white); transition: transform 0.3s ease, border-color 0.3s ease; }
+        .route-option:hover { transform: translateX(5px); }
+        .route-option.active { border-color: var(--gray-700); background-color: var(--gray-100); }
+        .route-option-icon { background-color: var(--white); width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 12px; color: var(--black); }
+        .route-option-info { flex: 1; }
+        .route-option-title { font-weight: 500; margin-bottom: 2px; color: var(--black); }
+        .route-option-details { font-size: 12px; color: var(--gray-500); }
+        .route-details { position: fixed; top: 0; right: -350px; width: 320px; height: calc(100vh - 80px); background-color: var(--white); z-index: 200; box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1); padding: 20px; display: flex; flex-direction: column; border-left: 1px solid var(--gray-200); overflow-y: auto; transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .route-details.visible { right: 0; }
+        .route-details-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--gray-200); }
+        .route-details-content { flex: 1; overflow-y: auto; }
+        .step-item { padding: 12px; border-bottom: 1px solid var(--gray-200); display: flex; transition: background-color 0.3s ease; }
+        .step-item:hover { background-color: var(--gray-100); }
+        .step-item:last-child { border-bottom: none; }
+        .step-number { width: 24px; height: 24px; border-radius: 50%; background-color: var(--gray-700); color: var(--white); display: flex; align-items: center; justify-content: center; font-size: 12px; margin-right: 12px; flex-shrink: 0; }
+        .step-content { flex: 1; color: var(--black); }
+        .route-progress { background-color: var(--gray-100); border-radius: var(--border-radius); padding: 12px; margin-bottom: 12px; border: 1px solid var(--gray-200); }
+        .progress-bar-container { height: 6px; background-color: var(--gray-200); border-radius: 3px; margin: 8px 0; overflow: hidden; }
+        .progress-bar { height: 100%; background-color: var(--gray-700); width: 0%; transition: width 0.5s ease-in-out; }
+        .eta-info { display: flex; justify-content: space-between; font-size: 12px; color: var(--gray-500); }
+        .profile-container { padding: 20px; height: calc(100vh - 80px); overflow-y: auto; background-color: var(--gray-100); }
+        .profile-header {
+            background-color: var(--white); padding: 20px; border-radius: var(--border-radius); margin-bottom: 20px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05); display: flex; align-items: center;
+        }
+        .profile-avatar {
+            width: 60px; height: 60px; background-color: var(--primary); color: var(--white); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; margin-right: 16px; font-size: 28px;
+        }
+        .profile-info { flex: 1; }
+        .profile-name { font-size: 22px; font-weight: 600; color: var(--black); margin-bottom: 4px; }
+        .profile-email { font-size: 14px; color: var(--gray-500); }
+        .profile-section { background-color: var(--white); border-radius: var(--border-radius); padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05); }
+        .section-title { font-size: 18px; font-weight: 600; color: var(--black); margin-bottom: 12px; }
+        .guardian-key { background-color: var(--gray-100); padding: 12px; border-radius: 8px; font-size: 16px; font-weight: 500; text-align: center; color: var(--black); border: 1px dashed var(--gray-200); word-break: break-all; }
+        .contacts-list { max-height: 250px; overflow-y: auto; }
+        .contact-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--gray-200); }
+        .contact-item:last-child { border-bottom: none; }
+        .contact-info { display: flex; align-items: center; flex: 1; }
+        .contact-avatar { width: 40px; height: 40px; background-color: var(--gray-200); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 12px; color: var(--black); }
+        .contact-details h4 { font-size: 16px; font-weight: 500; color: var(--black); margin-bottom: 2px; }
+        .contact-relation { font-size: 12px; color: var(--gray-500); }
+        .contact-actions button { color: var(--gray-500); }
+        .contact-actions button:hover { color: var(--gray-700); }
+        .empty-state { padding: 20px; text-align: center; color: var(--gray-500); }
+        .empty-icon { font-size: 40px; margin-bottom: 8px; }
+        .settings-item { display: flex; align-items: center; padding: 12px 0; cursor: pointer; }
+        .settings-item .material-icons { margin-right: 12px; font-size: 24px; }
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.6); display: flex; align-items: flex-end; justify-content: center; z-index: 1000; opacity: 0; visibility: hidden; transition: opacity 0.4s ease-in-out; }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .modal {
+            background-color: var(--white); border-radius: 16px 16px 0 0; width: 100%;
+            transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .modal-overlay.active .modal { transform: translateY(0); }
+        .modal-header { padding: 16px; border-bottom: 1px solid var(--gray-200); display: flex; align-items: center; justify-content: space-between; }
+        .modal-body { padding: 20px 16px; }
+        .modal-footer { padding: 16px; border-top: 1px solid var(--gray-200); display: flex; justify-content: flex-end; gap: 12px; }
+        #sos-confirm-modal .modal { top: 0; bottom: 0; border-radius: 0; background: var(--white); }
+        .success-modal .modal-body { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 32px 24px; }
+        .success-icon { width: 80px; height: 80px; background-color: var(--gray-100); color: var(--black); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 16px; }
+        .success-icon .material-icons { font-size: 40px; }
+        .warning-icon { width: 80px; height: 80px; background-color: var(--gray-100); color: var(--black); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; }
+        .warning-icon .material-icons { font-size: 40px; }
+        .toast-container { position: fixed; bottom: calc(80px + 16px); left: 20px; right: 20px; display: flex; flex-direction: column; gap: 8px; z-index: 2000; }
+        .toast { background-color: var(--white); border-radius: var(--border-radius); padding: 16px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); display: flex; align-items: center; transform: translateY(100%); opacity: 0; transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s ease-in-out; }
+        .toast.show { transform: translateY(0); opacity: 1; }
+        .toast-error { border-left: 4px solid var(--gray-700); }
+        .toast-icon { margin-right: 12px; color: var(--black); }
+        .toast-content { flex: 1; }
+        .toast-title { font-weight: 500; margin-bottom: 2px; color: var(--black); }
+        .toast-message { font-size: 14px; color: var(--gray-500); }
+        .emergency-notification {
+            position: fixed; top: -100px; left: 20px; right: 20px; background-color: var(--sos);
+            color: var(--white); border-radius: var(--border-radius); padding: 16px; box-shadow: 0 0 10px rgba(211, 47, 47, 0.5);
+            z-index: 3000; display: flex; align-items: center; justify-content: space-between; transition: top 0.4s ease-in-out;
+        }
+        .emergency-notification.active { top: 20px; }
+        .emergency-notification .notification-icon { margin-right: 12px; }
+        .emergency-notification .notification-content { flex: 1; }
+        .emergency-notification .notification-title { font-weight: 600; margin-bottom: 4px; }
+        .emergency-notification .notification-message { font-size: 14px; }
+        .emergency-notification .notification-actions { display: flex; gap: 8px; }
+        .emergency-notification .notification-close { background: none; border: none; color: var(--white); cursor: pointer; padding: 8px; }
+        .notification-btn { background-color: rgba(255, 255, 255, 0.2); border: none; color: var(--white); padding: 8px 12px; border-radius: 4px; cursor: pointer; transition: background-color 0.3s ease; }
+        .notification-btn:hover { background-color: rgba(255, 255, 255, 0.3); }
+    </style>
+</head>
+<body>
+    <div id="login-page" class="page active">
+        <div class="auth-container">
+            <div class="auth-logo">
+                <h1>Guardian</h1>
+                <p>Your personal safety companion</p>
+            </div>
+            <form id="login-form" class="auth-form">
+                <div class="form-group">
+                    <label class="form-label" for="login-email">Email</label>
+                    <input type="email" id="login-email" class="form-input" placeholder="Enter your email" required>
+                    <div class="form-error" id="login-email-error"></div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="login-password">Password</label>
+                    <input type="password" id="login-password" class="form-input" placeholder="Enter your password" required>
+                    <div class="form-error" id="login-password-error"></div>
+                </div>
+                <button type="submit" class="btn btn-primary w-full mb-4" id="login-btn">Login</button>
+            </form>
+            <p class="text-center">Don't have an account? <a href="#" class="auth-link" id="go-to-signup">Sign up</a></p>
+        </div>
+    </div>
+    <div id="signup-page" class="page">
+        <div class="auth-container">
+            <div class="auth-logo">
+                <h1>Guardian</h1>
+                <p>Create your account</p>
+            </div>
+            <form id="signup-form" class="auth-form">
+                <div class="form-group">
+                    <label class="form-label" for="signup-fullname">Full Name</label>
+                    <input type="text" id="signup-fullname" class="form-input" placeholder="Enter your full name" required>
+                    <div class="form-error" id="signup-fullname-error"></div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="signup-email">Email</label>
+                    <input type="email" id="signup-email" class="form-input" placeholder="Enter your email" required>
+                    <div class="form-error" id="signup-email-error"></div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="signup-phone">Phone Number</label>
+                    <input type="tel" id="signup-phone" class="form-input" placeholder="Enter your phone number" required>
+                    <div class="form-error" id="signup-phone-error"></div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="signup-password">Password</label>
+                    <input type="password" id="signup-password" class="form-input" placeholder="Create a password" required>
+                    <div class="form-error" id="signup-password-error"></div>
+                </div>
+                <button type="submit" class="btn btn-primary w-full mb-4" id="signup-btn">Sign Up</button>
+            </form>
+            <p class="text-center">Already have an account? <a href="#" class="auth-link" id="go-to-login">Login</a></p>
+        </div>
+    </div>
+    <div id="home-page" class="page">
+        <div class="map-container">
+            <div id="map"></div>
+            <div class="map-search-container">
+                <div class="map-search">
+                    <div class="search-icon"><span class="material-icons">place</span></div>
+                    <input type="text" id="origin-search-input" placeholder="Enter starting point...">
+                    <button id="current-location-origin-btn" class="location-btn" title="Use current location"><span class="material-icons">my_location</span></button>
+                </div>
+                <div class="map-search">
+                    <div class="search-icon"><span class="material-icons">flag</span></div>
+                    <input type="text" id="destination-search-input" placeholder="Enter destination...">
+                    <button id="current-location-dest-btn" class="location-btn" title="Use current location"><span class="material-icons">my_location</span></button>
+                </div>
+                <div class="route-search-container">
+                    <button id="route-search-btn" class="route-search-btn"><span class="material-icons">directions</span><span class="route-btn-text">Find Safe Route</span></button>
+                </div>
+            </div>
+            <div class="location-info pt-6" id="location-info">
+                <h3 id="location-name">Current Location</h3>
+                <p id="location-address" class="text-gray">Loading address...</p>
+                <div class="route-options">
+                    <div class="route-mode-selector">
+                        <button id="walking-mode" class="route-mode-btn active"><span class="material-icons">directions_walk</span></button>
+                        <button id="driving-mode" class="route-mode-btn"><span class="material-icons">directions_car</span></button>
+                        <button id="transit-mode" class="route-mode-btn"><span class="material-icons">directions_transit</span></button>
+                    </div>
+                </div>
+                <div class="route-progress" id="route-progress" style="display: none;">
+                    <h4>Estimated Arrival</h4>
+                    <div class="progress-bar-container"><div class="progress-bar" id="route-progress-bar"></div></div>
+                    <div class="eta-info"><span id="route-current-time">Starting...</span><span id="route-eta">ETA: Calculating...</span></div>
+                </div>
+                <div class="alternative-routes" id="alternative-routes" style="display: none;">
+                    <h4>Alternative Routes</h4>
+                    <div id="route-alternatives-container"></div>
+                </div>
+                <div class="location-actions">
+                    <button class="btn btn-outline" id="share-location-btn"><span class="material-icons mr-2">share</span>Share</button>
+                    <button class="btn btn-primary" id="start-route-btn"><span class="material-icons mr-2">play_arrow</span>Start</button>
+                    <button class="btn btn-outline" id="route-details-btn"><span class="material-icons mr-2">list</span>Details</button>
+                </div>
+            </div>
+            <div class="route-details" id="route-details-panel">
+                <div class="route-details-header">
+                    <h3>Route Details</h3>
+                    <button id="close-route-details" class="btn-icon"><span class="material-icons">close</span></button>
+                </div>
+                <div class="route-details-content" id="route-details-content"></div>
+            </div>
+        </div>
+    </div>
+    <div id="profile-page" class="page">
+        <div class="profile-container">
+            <div class="profile-header">
+                <div class="profile-avatar">
+                    <span class="material-icons">person</span>
+                </div>
+                <div class="profile-info">
+                    <h2 id="profile-name" class="profile-name">Loading...</h2>
+                    <p id="profile-email" class="profile-email">loading@example.com</p>
+                </div>
+            </div>
+            <div class="profile-section">
+                <div class="section-title">Your Guardian Key</div>
+                <div class="guardian-key" id="guardian-key">Loading...</div>
+                <button class="btn btn-outline mt-2 w-full" id="copy-key-btn"><span class="material-icons mr-2">content_copy</span>Copy Key</button>
+            </div>
+            <div class="profile-section">
+                <div class="flex justify-between items-center mb-2">
+                    <div class="section-title">Emergency Contacts</div>
+                    <button id="add-contact-btn" class="btn btn-primary"><span class="material-icons mr-2">add</span>Add</button>
+                </div>
+                <div id="contacts-list" class="contacts-list">
+                    <div class="empty-state" id="empty-contacts">
+                        <span class="material-icons empty-icon">group</span>
+                        <p>No emergency contacts added yet</p>
+                    </div>
+                </div>
+            </div>
+            <div class="profile-section">
+                <div class="section-title">Settings</div>
+                <div class="settings-item" id="logout-btn">
+                    <span class="material-icons">logout</span>
+                    <span>Logout</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="bottom-nav" class="bottom-nav hidden">
+        <a href="#" class="bottom-nav-item" data-page="home"><span class="material-icons">map</span><span>Map</span></a>
+        <a href="#" class="bottom-nav-item sos-nav-item" data-page="sos">
+            <div class="sos-nav-button" id="sos-button" aria-label="Trigger SOS Alert"><span class="material-icons" id="sos-icon">emergency</span></div>
+            <span>SOS</span>
+        </a>
+        <a href="#" class="bottom-nav-item" data-page="profile"><span class="material-icons">person</span><span>Profile</span></a>
+    </div>
+    <div id="add-contact-modal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Add Emergency Contact</h3>
+                <button class="modal-close" id="close-add-contact"><span class="material-icons">close</span></button>
+            </div>
+            <form id="add-contact-form">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label" for="contact-guardian-key">Guardian Key</label>
+                        <input type="text" id="contact-guardian-key" class="form-input" placeholder="Enter Guardian Key" required>
+                        <div class="form-error" id="contact-guardian-key-error"></div>
+                        <p class="form-help">Ask your emergency contact for their guardian key</p>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="contact-relation">Relation</label>
+                        <select id="contact-relation" class="form-select" required>
+                            <option value="">Select relation</option>
+                            <option value="Family">Family</option>
+                            <option value="Friend">Friend</option>
+                            <option value="Colleague">Colleague</option>
+                            <option value="Other">Other</option>
+                        </select>
+                        <div class="form-error" id="contact-relation-error"></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" id="cancel-add-contact">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="submit-add-contact">Add Contact</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div id="sos-confirm-modal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">SOS Alert Initiated</h3>
+                <button class="modal-close" id="close-sos-confirm"><span class="material-icons">close</span></button>
+            </div>
+            <div class="modal-body">
+                <div class="warning-icon mb-4"><span class="material-icons">warning</span></div>
+                <p id="sos-timer">Time remaining: 10s</p>
+                <p class="mt-2">Enter password to cancel SOS alert:</p>
+                <input type="password" id="sos-password" class="form-input mt-2" placeholder="Enter password">
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" id="cancel-sos">Cancel SOS</button>
+                <button class="btn btn-sos" id="confirm-sos">Send Now</button>
+            </div>
+        </div>
+    </div>
+    <div id="sos-end-modal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">End SOS Alert</h3>
+                <button class="modal-close" id="close-sos-end"><span class="material-icons">close</span></button>
+            </div>
+            <div class="modal-body">
+                <div class="warning-icon mb-4"><span class="material-icons">stop</span></div>
+                <p class="mt-2">Enter password to end SOS alert:</p>
+                <input type="password" id="sos-end-password" class="form-input mt-2" placeholder="Enter password">
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" id="cancel-end-sos">Cancel</button>
+                <button class="btn btn-primary" id="confirm-end-sos">End SOS</button>
+            </div>
+        </div>
+    </div>
+    <div id="sos-success-modal" class="modal-overlay">
+        <div class="modal success-modal">
+            <div class="modal-body">
+                <div class="success-icon"><span class="material-icons">check_circle</span></div>
+                <h3 class="mb-2">SOS Alert Sent</h3>
+                <p class="text-center mb-4">Your emergency contacts have been notified with your location details</p>
+                <button class="btn btn-primary w-full" id="close-sos-success">OK</button>
+            </div>
+        </div>
+    </div>
+    <div class="toast-container" id="toast-container"></div>
+    <div id="emergency-notification" class="emergency-notification">
+        <div class="notification-icon"><span class="material-icons">warning</span></div>
+        <div class="notification-content">
+            <div class="notification-title">SOS Alert</div>
+            <div class="notification-message" id="sos-notification-message"></div>
+        </div>
+        <div class="notification-actions">
+            <button id="navigate-to-btn" class="notification-btn">Navigate To</button>
+            <button id="close-emergency-notification" class="notification-close"><span class="material-icons">close</span></button>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+    apiKey: "AIzaSyAv2LUHlRxvadYD2ok9zs426TxIEpXCGWA",
+    authDomain: "guardian-4a206.firebaseapp.com",
+    projectId: "guardian-4a206",
+    storageBucket: "guardian-4a206.firebasestorage.app",
+    messagingSenderId: "249797346737",
+    appId: "1:249797346737:web:29edab4d045345742d6990",
+    measurementId: "G-X35KJKEPEB"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+const pages = document.querySelectorAll('.page');
+const bottomNav = document.getElementById('bottom-nav');
+const navItems = document.querySelectorAll('.bottom-nav-item');
+const loginForm = document.getElementById('login-form');
+const loginEmail = document.getElementById('login-email');
+const loginPassword = document.getElementById('login-password');
+const signupForm = document.getElementById('signup-form');
+const signupFullName = document.getElementById('signup-fullname');
+const signupEmail = document.getElementById('signup-email');
+const signupPhone = document.getElementById('signup-phone');
+const signupPassword = document.getElementById('signup-password');
+const goToSignupBtn = document.getElementById('go-to-signup');
+const goToLoginBtn = document.getElementById('go-to-login');
+const profileName = document.getElementById('profile-name');
+const profileEmail = document.getElementById('profile-email');
+const guardianKeyDisplay = document.getElementById('guardian-key');
+const copyKeyBtn = document.getElementById('copy-key-btn');
+const contactsList = document.getElementById('contacts-list');
+const emptyContacts = document.getElementById('empty-contacts');
+const addContactBtn = document.getElementById('add-contact-btn');
+const addContactModal = document.getElementById('add-contact-modal');
+const closeAddContactBtn = document.getElementById('close-add-contact');
+const cancelAddContactBtn = document.getElementById('cancel-add-contact');
+const addContactForm = document.getElementById('add-contact-form');
+const contactGuardianKey = document.getElementById('contact-guardian-key');
+const contactRelation = document.getElementById('contact-relation');
+const logoutBtn = document.getElementById('logout-btn');
+const sosButton = document.getElementById('sos-button');
+const sosIcon = document.getElementById('sos-icon');
+const sosConfirmModal = document.getElementById('sos-confirm-modal');
+const closeSosConfirmBtn = document.getElementById('close-sos-confirm');
+const cancelSosBtn = document.getElementById('cancel-sos');
+const confirmSosBtn = document.getElementById('confirm-sos');
+const sosEndModal = document.getElementById('sos-end-modal');
+const closeSosEndBtn = document.getElementById('close-sos-end');
+const cancelEndSosBtn = document.getElementById('cancel-end-sos');
+const confirmEndSosBtn = document.getElementById('confirm-end-sos');
+const sosSuccessModal = document.getElementById('sos-success-modal');
+const closeSosSuccessBtn = document.getElementById('close-sos-success');
+const emergencyNotification = document.getElementById('emergency-notification');
+const sosNotificationMessage = document.getElementById('sos-notification-message');
+const navigateToBtn = document.getElementById('navigate-to-btn');
+const closeEmergencyNotificationBtn = document.getElementById('close-emergency-notification');
+const mapElement = document.getElementById('map');
+const originSearchInput = document.getElementById('origin-search-input');
+const destinationSearchInput = document.getElementById('destination-search-input');
+const currentLocationOriginBtn = document.getElementById('current-location-origin-btn');
+const currentLocationDestBtn = document.getElementById('current-location-dest-btn');
+const routeSearchBtn = document.getElementById('route-search-btn');
+const locationInfo = document.getElementById('location-info');
+const locationName = document.getElementById('location-name');
+const locationAddress = document.getElementById('location-address');
+const shareLocationBtn = document.getElementById('share-location-btn');
+const startRouteBtn = document.getElementById('start-route-btn');
+const routeDetailsBtn = document.getElementById('route-details-btn');
+const routeDetailsPanel = document.getElementById('route-details-panel');
+const closeRouteDetailsBtn = document.getElementById('close-route-details');
+const routeDetailsContent = document.getElementById('route-details-content');
+const routeProgress = document.getElementById('route-progress');
+const routeProgressBar = document.getElementById('route-progress-bar');
+const routeCurrentTime = document.getElementById('route-current-time');
+const routeEta = document.getElementById('route-eta');
+const alternativeRoutes = document.getElementById('alternative-routes');
+const routeAlternativesContainer = document.getElementById('route-alternatives-container');
+const drivingModeBtn = document.getElementById('driving-mode');
+const walkingModeBtn = document.getElementById('walking-mode');
+const transitModeBtn = document.getElementById('transit-mode');
+
+let currentUser = null;
+let map = null;
+let userMarker = null;
+let originMarker = null;
+let destinationMarker = null;
+let currentLocation = null;
+let directionsService = null;
+let directionsRenderer = null;
+let routeMode = 'WALKING';
+let currentRoute = null;
+let alternativeRoutesData = [];
+let selectedRouteIndex = 0;
+let routeUpdateWatcher = null;
+let sosCountdown = 10;
+let sosInterval = null;
+let activeSosId = null;
+let lastSosLocation = null;
+let firstSosReceived = {};
+const sosPassword = "stop123";
+
+function sanitizeInput(input) {
+    return input.replace(/[<>&"']/g, '');
+}
+
+function debounce(func, wait) {
+    let timeout;
+    return (...args) => {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func(...args), wait);
+    };
+}
+
+function showPage(pageId) {
+    const currentActive = document.querySelector('.page.active');
+    if (currentActive && currentActive.id === `${pageId}-page`) {
+        if (pageId === 'home' && map) {
+            google.maps.event.trigger(map, 'resize');
+            if (currentLocation) map.setCenter(currentLocation);
+        }
+        return;
+    }
+    if (currentActive) {
+        currentActive.classList.add('exiting');
+        setTimeout(() => currentActive.classList.remove('active', 'exiting'), 400);
+    }
+    const page = document.getElementById(pageId + '-page');
+    if (page) {
+        page.classList.add('active');
+        const mapContainer = document.querySelector('.map-container');
+        if (pageId === 'home') {
+            mapContainer.style.display = 'block';
+            if (!map && google && google.maps) {
+                initMap();
+            } else if (map) {
+                google.maps.event.trigger(map, 'resize');
+                if (currentLocation) map.setCenter(currentLocation);
+            } else {
+                const checkGoogleMaps = setInterval(() => {
+                    if (google && google.maps) {
+                        clearInterval(checkGoogleMaps);
+                        initMap();
+                    }
+                }, 100);
+                setTimeout(() => {
+                    if (!map) showToast('error', 'Map Load Failed', 'Google Maps API not loaded');
+                }, 10000);
+            }
+        } else {
+            mapContainer.style.display = 'none';
+        }
+        navItems.forEach(item => item.classList.toggle('active', item.dataset.page === pageId));
+    }
+    if (pageId === 'login' || pageId === 'signup') bottomNav.classList.add('hidden');
+    else if (currentUser) bottomNav.classList.remove('hidden');
+}
+
+function showToast(type, title, message, duration = 3000) {
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.innerHTML = `
+        <div class="toast-icon"><span class="material-icons">error</span></div>
+        <div class="toast-content">
+            <div class="toast-title">${title}</div>
+            <div class="toast-message">${message}</div>
+        </div>`;
+    const toastContainer = document.getElementById('toast-container');
+    toastContainer.appendChild(toast);
+    toast.offsetHeight;
+    toast.classList.add('show');
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toastContainer.removeChild(toast), 400);
+    }, duration);
+}
+
+function showModal(modal) { modal.classList.add('active'); }
+function hideModal(modal) { modal.classList.remove('active'); }
+
+function showEmergencyNotification(message, location) {
+    sosNotificationMessage.textContent = message;
+    emergencyNotification.classList.add('active');
+    lastSosLocation = location;
+    setTimeout(() => emergencyNotification.classList.remove('active'), 10000);
+}
+
+function generateGuardianKey() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let key = '';
+    for (let group = 0; group < 3; group++) {
+        for (let i = 0; i < 4; i++) key += chars[Math.floor(Math.random() * chars.length)];
+        if (group < 2) key += '-';
+    }
+    return key;
+}
+
+auth.onAuthStateChanged(user => {
+    currentUser = user;
+    if (user) {
+        showPage('home');
+        loadUserProfile();
+        listenForSosAlerts();
+        initSpeechRecognition();
+    } else {
+        showPage('login');
+        if (recognition && isListening) {
+            recognition.stop();
+            isListening = false;
+        }
+    }
+});
+
+loginForm.addEventListener('submit', e => {
+    e.preventDefault();
+    auth.signInWithEmailAndPassword(sanitizeInput(loginEmail.value), loginPassword.value)
+        .catch(err => showToast('error', 'Login Failed', err.message));
+});
+
+signupForm.addEventListener('submit', e => {
+    e.preventDefault();
+    const fullName = sanitizeInput(signupFullName.value.trim());
+    const email = sanitizeInput(signupEmail.value.trim());
+    const phone = sanitizeInput(signupPhone.value.trim());
+    const password = signupPassword.value;
+    const nameError = document.getElementById('signup-fullname-error');
+    const emailError = document.getElementById('signup-email-error');
+    const phoneError = document.getElementById('signup-phone-error');
+    const passwordError = document.getElementById('signup-password-error');
+    nameError.textContent = '';
+    emailError.textContent = '';
+    phoneError.textContent = '';
+    passwordError.textContent = '';
+    let isValid = true;
+    if (fullName.length < 2) {
+        nameError.textContent = 'Full name must be at least 2 characters';
+        isValid = false;
+    }
+    if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email)) {
+        emailError.textContent = 'Please enter a valid email';
+        isValid = false;
+    }
+    if (!/^\d{10,15}$/.test(phone)) {
+        phoneError.textContent = 'Phone number must be 10-15 digits';
+        isValid = false;
+    }
+    if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/.test(password)) {
+        passwordError.textContent = 'Password must be 8+ chars with uppercase, lowercase, number, and special char';
+        isValid = false;
+    }
+    if (!isValid) return;
+    auth.createUserWithEmailAndPassword(email, password)
+        .then(userCredential => {
+            const user = userCredential.user;
+            const guardianKey = generateGuardianKey();
+            return db.collection('users').doc(user.uid).set({
+                fullName: fullName,
+                email: email,
+                phone: phone,
+                guardianKey: guardianKey,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        })
+        .catch(err => showToast('error', 'Signup Failed', err.message));
+});
+
+goToSignupBtn.addEventListener('click', e => { e.preventDefault(); showPage('signup'); });
+goToLoginBtn.addEventListener('click', e => { e.preventDefault(); showPage('login'); });
+
+logoutBtn.addEventListener('click', () => {
+    auth.signOut()
+        .catch(err => showToast('error', 'Logout Failed', err.message));
+});
+
+function loadUserProfile() {
+    if (!currentUser) return;
+    db.collection('users').doc(currentUser.uid).get()
+        .then(doc => {
+            if (doc.exists) {
+                const data = doc.data();
+                profileName.textContent = data.fullName || 'User';
+                profileEmail.textContent = data.email;
+                guardianKeyDisplay.textContent = data.guardianKey;
+                loadEmergencyContacts();
+            }
+        })
+        .catch(err => showToast('error', 'Profile Load Failed', err.message));
+}
+
+copyKeyBtn.addEventListener('click', () => {
+    navigator.clipboard.writeText(guardianKeyDisplay.textContent)
+        .catch(err => showToast('error', 'Copy Failed', err.message));
+});
+
+function loadEmergencyContacts() {
+    db.collection('users').doc(currentUser.uid).collection('emergencyContacts').get()
+        .then(querySnapshot => {
+            const fragment = document.createDocumentFragment();
+            contactsList.innerHTML = '';
+            if (querySnapshot.empty) {
+                emptyContacts.classList.remove('hidden');
+            } else {
+                emptyContacts.classList.add('hidden');
+                querySnapshot.forEach(doc => {
+                    const contactItem = document.createElement('div');
+                    contactItem.className = 'contact-item';
+                    contactItem.innerHTML = `
+                        <div class="contact-info">
+                            <div class="contact-avatar"><span class="material-icons">person</span></div>
+                            <div class="contact-details">
+                                <h4>${doc.data().name || 'Unknown'}</h4>
+                                <p class="contact-relation">${doc.data().relation}</p>
+                            </div>
+                        </div>
+                        <div class="contact-actions">
+                            <button class="btn-icon" data-id="${doc.id}"><span class="material-icons">delete</span></button>
+                        </div>`;
+                    contactItem.querySelector('.btn-icon').addEventListener('click', () => deleteContact(doc.id));
+                    fragment.appendChild(contactItem);
+                });
+                contactsList.appendChild(fragment);
+            }
+        })
+        .catch(err => showToast('error', 'Contacts Load Failed', err.message));
+}
+
+function deleteContact(contactId) {
+    db.collection('users').doc(currentUser.uid).collection('emergencyContacts').doc(contactId).delete()
+        .then(() => loadEmergencyContacts())
+        .catch(err => showToast('error', 'Delete Failed', err.message));
+}
+
+addContactBtn.addEventListener('click', () => showModal(addContactModal));
+closeAddContactBtn.addEventListener('click', () => hideModal(addContactModal));
+cancelAddContactBtn.addEventListener('click', () => hideModal(addContactModal));
+
+addContactForm.addEventListener('submit', e => {
+    e.preventDefault();
+    db.collection('users').where('guardianKey', '==', sanitizeInput(contactGuardianKey.value)).get()
+        .then(querySnapshot => {
+            if (querySnapshot.empty) throw new Error('Invalid Guardian Key');
+            const contactData = querySnapshot.docs[0].data();
+            return db.collection('users').doc(currentUser.uid).collection('emergencyContacts').add({
+                guardianKey: sanitizeInput(contactGuardianKey.value),
+                name: contactData.fullName,
+                email: contactData.email,
+                phone: contactData.phone,
+                relation: contactRelation.value,
+                addedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        })
+        .then(() => {
+            hideModal(addContactModal);
+            addContactForm.reset();
+            loadEmergencyContacts();
+        })
+        .catch(err => showToast('error', 'Add Contact Failed', err.message));
+});
+
+function initMap() {
+    const mapStyle = [
+        {"featureType": "all", "elementType": "geometry.fill", "stylers": [{"weight": "2.00"}]},
+        {"featureType": "all", "elementType": "geometry.stroke", "stylers": [{"color": "#f0f0f0"}]},
+        {"featureType": "all", "elementType": "labels.text", "stylers": [{"visibility": "on"}]},
+        {"featureType": "landscape", "elementType": "all", "stylers": [{"color": "#f9f9f9"}]},
+        {"featureType": "landscape", "elementType": "geometry.fill", "stylers": [{"color": "#ffffff"}]},
+        {"featureType": "landscape.man_made", "elementType": "geometry.fill", "stylers": [{"color": "#f5f5f5"}]},
+        {"featureType": "poi", "elementType": "all", "stylers": [{"visibility": "off"}]},
+        {"featureType": "road", "elementType": "all", "stylers": [{"saturation": -100}, {"lightness": 45}]},
+        {"featureType": "road", "elementType": "geometry.fill", "stylers": [{"color": "#eeeeee"}]},
+        {"featureType": "road", "elementType": "labels.text.fill", "stylers": [{"color": "#7b7b7b"}]},
+        {"featureType": "road", "elementType": "labels.text.stroke", "stylers": [{"color": "#ffffff"}]},
+        {"featureType": "road.highway", "elementType": "all", "stylers": [{"visibility": "simplified"}]},
+        {"featureType": "road.arterial", "elementType": "labels.icon", "stylers": [{"visibility": "off"}]},
+        {"featureType": "transit", "elementType": "all", "stylers": [{"visibility": "off"}]},
+        {"featureType": "water", "elementType": "all", "stylers": [{"color": "#e9e9e9"}, {"visibility": "on"}]},
+        {"featureType": "water", "elementType": "geometry.fill", "stylers": [{"color": "#e9e9e9"}]}
+    ];
+    map = new google.maps.Map(mapElement, {
+        zoom: 15,
+        mapTypeControl: false,
+        streetViewControl: false,
+        fullscreenControl: false,
+        gestureHandling: 'greedy',
+        zoomControlOptions: { position: google.maps.ControlPosition.RIGHT_BOTTOM },
+        padding: { bottom: 120, left: 0, top: 0, right: 0 },
+        scrollwheel: true,
+        draggable: true,
+        disableDefaultUI: false,
+        styles: mapStyle
+    });
+    directionsService = new google.maps.DirectionsService();
+    directionsRenderer = new google.maps.DirectionsRenderer({ map: map, suppressMarkers: true });
+    const originAutocomplete = new google.maps.places.Autocomplete(originSearchInput);
+    const destinationAutocomplete = new google.maps.places.Autocomplete(destinationSearchInput);
+    originAutocomplete.addListener('place_changed', () => updateMarker('origin', originAutocomplete.getPlace()));
+    destinationAutocomplete.addListener('place_changed', () => updateMarker('destination', destinationAutocomplete.getPlace()));
+    originSearchInput.addEventListener('input', debounce(() => {
+        const place = originAutocomplete.getPlace();
+        if (place) updateMarker('origin', place);
+    }, 300));
+    destinationSearchInput.addEventListener('input', debounce(() => {
+        const place = destinationAutocomplete.getPlace();
+        if (place) updateMarker('destination', place);
+    }, 300));
+    getCurrentLocation();
+}
+
+function getCurrentLocation() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            position => {
+                currentLocation = { lat: position.coords.latitude, lng: position.coords.longitude };
+                if (!map.getCenter()) map.setCenter(currentLocation);
+                if (!userMarker) {
+                    userMarker = new google.maps.Marker({
+                        position: currentLocation,
+                        map: map,
+                        icon: {
+                            url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(
+                                '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="#000000" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>'
+                            ),
+                            scaledSize: new google.maps.Size(36, 36)
+                        }
+                    });
+                } else {
+                    userMarker.setPosition(currentLocation);
+                }
+                updateLocationInfo(currentLocation);
+            },
+            err => showToast('error', 'Location Error', 'Please enable location access')
+        );
+    } else {
+        showToast('error', 'Geolocation Not Supported', 'Your browser does not support geolocation');
+    }
+}
+
+function updateMarker(type, place) {
+    let position;
+    if (place && place.geometry && place.geometry.location) {
+        if (typeof place.geometry.location.lat === 'function') {
+            position = { lat: place.geometry.location.lat(), lng: place.geometry.location.lng() };
+        } else {
+            position = { lat: place.geometry.location.lat, lng: place.geometry.location.lng };
+        }
+    } else {
+        return;
+    }
+    const marker = type === 'origin' ? originMarker : destinationMarker;
+    if (!marker) {
+        const newMarker = new google.maps.Marker({
+            position: position,
+            map: map,
+            icon: {
+                url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(
+                    `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="${type === 'origin' ? '#000000' : '#777777'}" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>`
+                ),
+                scaledSize: new google.maps.Size(36, 36)
+            }
+        });
+        if (type === 'origin') originMarker = newMarker;
+        else destinationMarker = newMarker;
+    } else {
+        marker.setPosition(position);
+    }
+    map.panTo(position);
+    updateLocationInfo(position, place.name || (type === 'origin' ? 'Starting Point' : 'Destination'));
+}
+
+currentLocationOriginBtn.addEventListener('click', () => {
+    if (currentLocation) {
+        originSearchInput.value = 'Current Location';
+        updateMarker('origin', { geometry: { location: currentLocation } });
+    } else {
+        showToast('error', 'Location Error', 'Current location not available');
+    }
+});
+
+currentLocationDestBtn.addEventListener('click', () => {
+    if (currentLocation) {
+        destinationSearchInput.value = 'Current Location';
+        updateMarker('destination', { geometry: { location: currentLocation } });
+    } else {
+        showToast('error', 'Location Error', 'Current location not available');
+    }
+});
+
+function updateLocationInfo(position, name = 'Current Location') {
+    const geocoder = new google.maps.Geocoder();
+    geocoder.geocode({ location: position }, (results, status) => {
+        if (status === 'OK' && results[0]) {
+            locationName.textContent = name;
+            locationAddress.textContent = results[0].formatted_address;
+        } else {
+            locationAddress.textContent = 'Address not found';
+        }
+    });
+}
+
+function calculateRoute() {
+    if (!originSearchInput.value || !destinationSearchInput.value) {
+        showToast('error', 'Missing Input', 'Please enter both origin and destination');
+        return;
+    }
+    const origin = originSearchInput.value === 'Current Location' ? currentLocation : sanitizeInput(originSearchInput.value);
+    const destination = destinationSearchInput.value === 'Current Location' ? currentLocation : sanitizeInput(destinationSearchInput.value);
+    if (!origin || !destination) {
+        showToast('error', 'Location Error', 'Current location not available yet');
+        return;
+    }
+    const request = {
+        origin: origin,
+        destination: destination,
+        travelMode: routeMode,
+        provideRouteAlternatives: true
+    };
+    directionsService.route(request, (result, status) => {
+        if (status === 'OK') {
+            directionsRenderer.setDirections(result);
+            currentRoute = result.routes[0];
+            alternativeRoutesData = result.routes;
+            selectedRouteIndex = 0;
+            renderAlternativeRoutes();
+            alternativeRoutes.style.display = 'block';
+            updateRouteDetails();
+            locationInfo.classList.add('visible');
+        } else {
+            showToast('error', 'Route Failed', `Could not find a route: ${status}`);
+        }
+    });
+}
+
+routeSearchBtn.addEventListener('click', calculateRoute);
+
+function renderAlternativeRoutes() {
+    const fragment = document.createDocumentFragment();
+    alternativeRoutesData.forEach((route, index) => {
+        const routeOption = document.createElement('div');
+        routeOption.className = `route-option ${index === selectedRouteIndex ? 'active' : ''}`;
+        const duration = route.legs[0].duration.text;
+        const distance = route.legs[0].distance.text;
+        routeOption.innerHTML = `
+            <div class="route-option-icon"><span class="material-icons">${routeMode === 'DRIVING' ? 'directions_car' : routeMode === 'WALKING' ? 'directions_walk' : 'directions_transit'}</span></div>
+            <div class="route-option-info">
+                <div class="route-option-title">Route ${index + 1}</div>
+                <div class="route-option-details">${duration} (${distance})</div>
+            </div>`;
+        routeOption.addEventListener('click', () => {
+            selectedRouteIndex = index;
+            directionsRenderer.setRouteIndex(index);
+            currentRoute = alternativeRoutesData[index];
+            updateRouteDetails();
+            document.querySelectorAll('.route-option').forEach(opt => opt.classList.remove('active'));
+            routeOption.classList.add('active');
+        });
+        fragment.appendChild(routeOption);
+    });
+    routeAlternativesContainer.innerHTML = '';
+    routeAlternativesContainer.appendChild(fragment);
+}
+
+function updateRouteDetails() {
+    const fragment = document.createDocumentFragment();
+    if (currentRoute) {
+        currentRoute.legs[0].steps.forEach((step, index) => {
+            const stepItem = document.createElement('div');
+            stepItem.className = 'step-item';
+            stepItem.innerHTML = `
+                <div class="step-number">${index + 1}</div>
+                <div class="step-content">${step.instructions}</div>`;
+            fragment.appendChild(stepItem);
+        });
+        routeDetailsContent.innerHTML = '';
+        routeDetailsContent.appendChild(fragment);
+    }
+}
+
+function startRouteTracking() {
+    if (!currentRoute) {
+        showToast('error', 'No Route', 'Please calculate a route first');
+        return;
+    }
+    if (routeUpdateWatcher) {
+        navigator.geolocation.clearWatch(routeUpdateWatcher);
+        routeUpdateWatcher = null;
+    }
+    routeProgress.style.display = 'block';
+    locationInfo.classList.add('visible');
+    alternativeRoutes.style.display = 'none';
+    map.setZoom(17);
+    map.setHeading(0);
+    map.setOptions({ padding: { bottom: 120, left: 0, top: 0, right: 0 } });
+    const destination = currentRoute.legs[0].end_location;
+
+    routeUpdateWatcher = navigator.geolocation.watchPosition(
+        position => {
+            const currentPos = { lat: position.coords.latitude, lng: position.coords.longitude };
+            userMarker.setPosition(currentPos);
+            map.panTo(currentPos);
+            map.setHeading(0);
+
+            const remainingDistance = google.maps.geometry.spherical.computeDistanceBetween(
+                currentPos,
+                destination
+            );
+            const totalDistance = currentRoute.legs[0].distance.value;
+            const progress = ((totalDistance - remainingDistance) / totalDistance) * 100;
+            routeProgressBar.style.width = `${Math.min(progress, 100)}%`;
+            routeCurrentTime.textContent = new Date().toLocaleTimeString();
+            const remainingDuration = (remainingDistance / totalDistance) * currentRoute.legs[0].duration.value;
+            const eta = new Date(Date.now() + remainingDuration * 1000);
+            routeEta.textContent = `ETA: ${eta.toLocaleTimeString()}`;
+
+            const polyline = new google.maps.Polyline({ path: currentRoute.overview_path });
+            const nearestPoint = google.maps.geometry.poly.isLocationOnEdge(currentPos, polyline, 0.0005);
+            if (!nearestPoint) {
+                showToast('warning', 'Off Route', 'You are off the planned route. Recalculating...');
+                calculateRouteFromCurrent(currentPos, destination);
+            }
+            if (remainingDistance < 50) {
+                navigator.geolocation.clearWatch(routeUpdateWatcher);
+                routeUpdateWatcher = null;
+                routeProgress.style.display = 'none';
+                locationInfo.classList.remove('visible');
+                showToast('success', 'Destination Reached', 'You have arrived at your destination!');
+            }
+        },
+        () => showToast('error', 'Location Update Failed', 'Unable to update position'),
+        { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+    );
+}
+
+function calculateRouteFromCurrent(currentPos, destination) {
+    const request = {
+        origin: currentPos,
+        destination: destination,
+        travelMode: routeMode
+    };
+    directionsService.route(request, (result, status) => {
+        if (status === 'OK') {
+            directionsRenderer.setDirections(result);
+            currentRoute = result.routes[0];
+            updateRouteDetails();
+        } else {
+            showToast('error', 'Recalculation Failed', `Could not recalculate route: ${status}`);
+        }
+    });
+}
+
+sosButton.addEventListener('click', () => {
+    if (activeSosId) {
+        showModal(sosEndModal);
+    } else {
+        showModal(sosConfirmModal);
+        sosCountdown = 10;
+        document.getElementById('sos-timer').textContent = `Time remaining: ${sosCountdown}s`;
+        if (sosInterval) clearInterval(sosInterval);
+        sosInterval = setInterval(() => {
+            sosCountdown--;
+            document.getElementById('sos-timer').textContent = `Time remaining: ${sosCountdown}s`;
+            if (sosCountdown <= 0) {
+                clearInterval(sosInterval);
+                triggerSos();
+            }
+        }, 1000);
+    }
+});
+
+cancelSosBtn.addEventListener('click', () => {
+    const password = document.getElementById('sos-password').value;
+    if (password === sosPassword) {
+        clearInterval(sosInterval);
+        hideModal(sosConfirmModal);
+    } else {
+        showToast('error', 'Invalid Password', 'Incorrect password');
+    }
+});
+
+confirmSosBtn.addEventListener('click', () => {
+    clearInterval(sosInterval);
+    triggerSos();
+});
+
+function triggerSos() {
+    if (!currentLocation) {
+        showToast('error', 'Location Error', 'Cannot send SOS without location');
+        return;
+    }
+    const sosData = {
+        userId: currentUser.uid,
+        location: new firebase.firestore.GeoPoint(currentLocation.lat, currentLocation.lng),
+        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+        active: true
+    };
+    db.collection('sosAlerts').add(sosData)
+        .then(docRef => {
+            activeSosId = docRef.id;
+            hideModal(sosConfirmModal);
+            showModal(sosSuccessModal);
+            sosIcon.textContent = 'sos';
+            sosButton.style.background = 'linear-gradient(135deg, #FF5722, #D81B60)';
+        })
+        .catch(err => showToast('error', 'SOS Failed', err.message));
+}
+
+closeSosSuccessBtn.addEventListener('click', () => hideModal(sosSuccessModal));
+
+confirmEndSosBtn.addEventListener('click', () => {
+    const password = document.getElementById('sos-end-password').value;
+    if (password === sosPassword) {
+        db.collection('sosAlerts').doc(activeSosId).update({ active: false })
+            .then(() => {
+                activeSosId = null;
+                hideModal(sosEndModal);
+                sosIcon.textContent = 'emergency';
+                sosButton.style.background = 'linear-gradient(135deg, #D32F2F, #B71C1C)';
+            })
+            .catch(err => showToast('error', 'End SOS Failed', err.message));
+    } else {
+        showToast('error', 'Invalid Password', 'Incorrect password');
+    }
+});
+
+closeSosConfirmBtn.addEventListener('click', () => hideModal(sosConfirmModal));
+closeSosEndBtn.addEventListener('click', () => hideModal(sosEndModal));
+cancelEndSosBtn.addEventListener('click', () => hideModal(sosEndModal));
+
+function listenForSosAlerts() {
+    db.collection('users').doc(currentUser.uid).collection('emergencyContacts').get()
+        .then(querySnapshot => {
+            const contactGuardianKeys = querySnapshot.docs.map(doc => doc.data().guardianKey);
+            if (contactGuardianKeys.length === 0) {
+                return;
+            }
+            db.collection('users').where('guardianKey', 'in', contactGuardianKeys).get()
+                .then(userSnapshot => {
+                    const contactUserIds = userSnapshot.docs.map(doc => doc.id);
+                    db.collection('sosAlerts')
+                        .where('userId', 'in', contactUserIds)
+                        .where('active', '==', true)
+                        .onSnapshot(snapshot => {
+                            snapshot.docChanges().forEach(change => {
+                                if (change.type === 'added') {
+                                    const sosData = change.doc.data();
+                                    const sosId = change.doc.id;
+                                    if (!firstSosReceived[sosId]) {
+                                        firstSosReceived[sosId] = true;
+                                        db.collection('users').doc(sosData.userId).get()
+                                            .then(doc => {
+                                                if (doc.exists) {
+                                                    const userData = doc.data();
+                                                    const location = { lat: sosData.location.latitude, lng: sosData.location.longitude };
+                                                    showEmergencyNotification(`${userData.fullName} has triggered an SOS alert!`, location);
+                                                }
+                                            });
+                                    }
+                                } else if (change.type === 'modified' && !change.doc.data().active) {
+                                    firstSosReceived[change.doc.id] = false;
+                                }
+                            });
+                        });
+                });
+        })
+        .catch(err => showToast('error', 'SOS Listener Failed', err.message));
+}
+
+navigateToBtn.addEventListener('click', () => {
+    if (lastSosLocation && map) {
+        originSearchInput.value = 'Current Location';
+        destinationSearchInput.value = `${lastSosLocation.lat}, ${lastSosLocation.lng}`;
+        calculateRoute();
+        emergencyNotification.classList.remove('active');
+        showPage('home');
+    }
+});
+
+closeEmergencyNotificationBtn.addEventListener('click', () => {
+    emergencyNotification.classList.remove('active');
+});
+
+shareLocationBtn.addEventListener('click', () => {
+    if (currentLocation) {
+        const locationText = `My location: https://maps.google.com/?q=${currentLocation.lat},${currentLocation.lng}`;
+        navigator.clipboard.writeText(locationText)
+            .then(() => showToast('success', 'Location Copied', 'Location URL copied to clipboard'))
+            .catch(() => showToast('error', 'Copy Failed', 'Could not copy location'));
+    } else {
+        showToast('error', 'Location Error', 'Current location not available');
+    }
+});
+
+startRouteBtn.addEventListener('click', startRouteTracking);
+
+routeDetailsBtn.addEventListener('click', () => {
+    routeDetailsPanel.classList.add('visible');
+});
+
+closeRouteDetailsBtn.addEventListener('click', () => {
+    routeDetailsPanel.classList.remove('visible');
+});
+
+drivingModeBtn.addEventListener('click', () => {
+    routeMode = 'DRIVING';
+    drivingModeBtn.classList.add('active');
+    walkingModeBtn.classList.remove('active');
+    transitModeBtn.classList.remove('active');
+    if (originSearchInput.value && destinationSearchInput.value) calculateRoute();
+});
+
+walkingModeBtn.addEventListener('click', () => {
+    routeMode = 'WALKING';
+    walkingModeBtn.classList.add('active');
+    drivingModeBtn.classList.remove('active');
+    transitModeBtn.classList.remove('active');
+    if (originSearchInput.value && destinationSearchInput.value) calculateRoute();
+});
+
+transitModeBtn.addEventListener('click', () => {
+    routeMode = 'TRANSIT';
+    transitModeBtn.classList.add('active');
+    drivingModeBtn.classList.remove('active');
+    walkingModeBtn.classList.remove('active');
+    if (originSearchInput.value && destinationSearchInput.value) calculateRoute();
+});
+
+navItems.forEach(item => {
+    item.addEventListener('click', e => {
+        e.preventDefault();
+        const page = item.dataset.page;
+        if (page === 'sos') return;
+        showPage(page);
+    });
+});
+
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recognition = null;
+let isListening = true;
+
+function initSpeechRecognition() {
+    if (!SpeechRecognition) {
+        showToast('error', 'Speech Recognition Not Supported', 'Your browser does not support speech recognition');
+        return;
+    }
+    recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = false;
+    recognition.lang = 'en-US';
+    recognition.onresult = (event) => {
+        const transcript = event.results[event.results.length - 1][0].transcript.trim().toLowerCase();
+        if (transcript === 'start sos' && currentUser) {
+            if (activeSosId) {
+                showToast('info', 'SOS Already Active', 'An SOS is already in progress');
+            } else {
+                showModal(sosConfirmModal);
+                sosCountdown = 10;
+                document.getElementById('sos-timer').textContent = `Time remaining: ${sosCountdown}s`;
+                if (sosInterval) clearInterval(sosInterval);
+                sosInterval = setInterval(() => {
+                    sosCountdown--;
+                    document.getElementById('sos-timer').textContent = `Time remaining: ${sosCountdown}s`;
+                    if (sosCountdown <= 0) {
+                        clearInterval(sosInterval);
+                        triggerSos();
+                    }
+                }, 1000);
+            }
+        }
+    };
+    recognition.onerror = (event) => {
+        if (event.error === 'no-speech' || event.error === 'aborted') return;
+        showToast('error', 'Speech Recognition Error', `Error: ${event.error}`);
+        if (isListening) {
+            setTimeout(() => recognition.start(), 1000);
+        }
+    };
+    recognition.onend = () => {
+        if (isListening) {
+            recognition.start();
+        }
+    };
+    if (isListening) {
+        recognition.start();
+    }
+}
+
+function toggleSpeechRecognition() {
+    if (!recognition) return;
+    if (isListening) {
+        recognition.stop();
+        isListening = false;
+    } else {
+        recognition.start();
+        isListening = true;
+    }
+}
+</script>
+</body>
+</html>
