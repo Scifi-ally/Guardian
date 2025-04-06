@@ -9,6 +9,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-storage-compat.js"></script>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA41wHVKnsb1RNhcftpHS5qNwvYz59nXIE&libraries=places" async defer></script>
     <style>
         * {
@@ -721,7 +722,7 @@
             color: var(--white);
             display: flex;
             align-items: center;
-            justify-content: center;
+            justify All: center;
             font-size: 12px;
             margin-right: 12px;
             flex-shrink: 0;
@@ -911,6 +912,35 @@
         .settings-item .material-icons {
             margin-right: 12px;
             font-size: 24px;
+        }
+
+        .audio-recording {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            background-color: var(--gray-100);
+            border-radius: var(--border-radius);
+            margin-top: 12px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .audio-recording:hover {
+            background-color: var(--gray-200);
+        }
+
+        .audio-recording.active {
+            background-color: var(--gray-200);
+        }
+
+        .audio-recording .material-icons {
+            font-size: 24px;
+            color: var(--gray-500);
+        }
+
+        #audio-status {
+            font-size: 14px;
         }
 
         .modal-overlay {
@@ -1266,6 +1296,17 @@
                 </div>
             </div>
             <div class="profile-section">
+                <div class="section-title">Custom SOS Audio Trigger</div>
+                <div class="settings-item audio-recording" id="record-audio-btn">
+                    <span class="material-icons">mic</span>
+                    <span id="record-audio-text">Record Custom Trigger</span>
+                </div>
+                <div id="audio-status" class="mt-2 text-gray">No custom trigger set</div>
+                <button class="btn btn-outline mt-2 w-full" id="delete-audio-btn" style="display: none;">
+                    <span class="material-icons mr-2">delete</span>Delete Trigger
+                </button>
+            </div>
+            <div class="profile-section">
                 <div class="section-title">Settings</div>
                 <div class="settings-item" id="logout-btn">
                     <span class="material-icons">logout</span>
@@ -1376,6 +1417,7 @@
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
+const storage = firebase.storage();
 
 const pages = document.querySelectorAll('.page');
 const bottomNav = document.getElementById('bottom-nav');
@@ -1441,6 +1483,10 @@ const alternativeRoutes = document.getElementById('alternative-routes');
 const routeAlternativesContainer = document.getElementById('route-alternatives-container');
 const drivingModeBtn = document.getElementById('driving-mode');
 const walkingModeBtn = document.getElementById('walking-mode');
+const recordAudioBtn = document.getElementById('record-audio-btn');
+const recordAudioText = document.getElementById('record-audio-text');
+const audioStatus = document.getElementById('audio-status');
+const deleteAudioBtn = document.getElementById('delete-audio-btn');
 
 let currentUser = null;
 let map = null;
@@ -1460,6 +1506,14 @@ let sosInterval = null;
 let activeSosId = null;
 let lastSosLocation = null;
 let firstSosReceived = {};
+let mediaRecorder = null;
+let audioChunks = [];
+let customAudioUrl = null;
+let audioContext = null;
+let analyser = null;
+let customAudioBuffer = null;
+let recognition = null;
+let isListening = false;
 const sosPassword = "stop123";
 
 function sanitizeInput(input) {
@@ -1660,6 +1714,15 @@ function loadUserProfile() {
                 profileName.textContent = data.fullName || 'User';
                 profileEmail.textContent = data.email;
                 guardianKeyDisplay.textContent = data.guardianKey;
+                if (data.customSosAudio) {
+                    customAudioUrl = data.customSosAudio;
+                    audioStatus.textContent = 'Custom trigger set';
+                    deleteAudioBtn.style.display = 'block';
+                    loadCustomAudioForRecognition();
+                } else {
+                    audioStatus.textContent = 'No custom trigger set';
+                    deleteAudioBtn.style.display = 'none';
+                }
                 loadEmergencyContacts();
             }
         })
@@ -1739,303 +1802,170 @@ addContactForm.addEventListener('submit', e => {
         .catch(err => showToast('error', 'Add Contact Failed', err.message));
 });
 
-function initMap() {
-    const mapStyle = [
-        { "featureType": "all", "elementType": "geometry.fill", "stylers": [{ "weight": "2.00" }] },
-        { "featureType": "all", "elementType": "geometry.stroke", "stylers": [{ "color": "#f0f0f0" }] },
-        { "featureType": "all", "elementType": "labels.text", "stylers": [{ "visibility": "on" }] },
-        { "featureType": "landscape", "elementType": "all", "stylers": [{ "color": "#f9f9f9" }] },
-        { "featureType": "landscape", "elementType": "geometry.fill", "stylers": [{ "color": "#ffffff" }] },
-        { "featureType": "landscape.man_made", "elementType": "geometry.fill", "stylers": [{ "color": "#f5f5f5" }] },
-        { "featureType": "poi", "elementType": "all", "stylers": [{ "visibility": "off" }] },
-        { "featureType": "road", "elementType": "all", "stylers": [{ "saturation": -100 }, { "lightness": 45 }] },
-        { "featureType": "road", "elementType": "geometry.fill", "stylers": [{ "color": "#eeeeee" }] },
-        { "featureType": "road", "elementType": "labels.text.fill", "stylers": [{ "color": "#7b7b7b" }] },
-        { "featureType": "road", "elementType": "labels.text.stroke", "stylers": [{ "color": "#ffffff" }] },
-        { "featureType": "road.highway", "elementType": "all", "stylers": [{ "visibility": "simplified" }] },
-        { "featureType": "road.arterial", "elementType": "labels.icon", "stylers": [{ "visibility": "off" }] },
-        { "featureType": "transit", "elementType": "all", "stylers": [{ "visibility": "off" }] },
-        { "featureType": "water", "elementType": "all", "stylers": [{ "color": "#e9e9e9" }, { "visibility": "on" }] },
-        { "featureType": "water", "elementType": "geometry.fill", "stylers": [{ "color": "#e9e9e9" }] }
-    ];
-    map = new google.maps.Map(mapElement, {
-        zoom: 15,
-        mapTypeControl: false,
-        streetViewControl: false,
-        fullscreenControl: false,
-        gestureHandling: 'greedy',
-        zoomControlOptions: { position: google.maps.ControlPosition.RIGHT_BOTTOM },
-        padding: { bottom: 120, left: 0, top: 0, right: 0 },
-        scrollwheel: true,
-        draggable: true,
-        disableDefaultUI: false,
-        styles: mapStyle
-    });
-    directionsService = new google.maps.DirectionsService();
-    directionsRenderer = new google.maps.DirectionsRenderer({ map: map, suppressMarkers: true });
-    const originAutocomplete = new google.maps.places.Autocomplete(originSearchInput);
-    const destinationAutocomplete = new google.maps.places.Autocomplete(destinationSearchInput);
-    originAutocomplete.addListener('place_changed', () => updateMarker('origin', originAutocomplete.getPlace()));
-    destinationAutocomplete.addListener('place_changed', () => updateMarker('destination', destinationAutocomplete.getPlace()));
-    originSearchInput.addEventListener('input', debounce(() => {
-        const place = originAutocomplete.getPlace();
-        if (place) updateMarker('origin', place);
-    }, 300));
-    destinationSearchInput.addEventListener('input', debounce(() => {
-        const place = destinationAutocomplete.getPlace();
-        if (place) updateMarker('destination', place);
-    }, 300));
-    getCurrentLocation();
-}
-
-function getCurrentLocation() {
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(position => {
-            currentLocation = { lat: position.coords.latitude, lng: position.coords.longitude };
-            if (!map.getCenter()) map.setCenter(currentLocation);
-            if (!userMarker) {
-                userMarker = new google.maps.Marker({
-                    position: currentLocation,
-                    map: map,
-                    icon: {
-                        url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="#000000" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>'),
-                        scaledSize: new google.maps.Size(36, 36)
-                    }
-                });
-            } else {
-                userMarker.setPosition(currentLocation);
-            }
-            updateLocationInfo(currentLocation);
-        }, err => showToast('error', 'Location Error', 'Please enable location access'));
+recordAudioBtn.addEventListener('click', async () => {
+    if (mediaRecorder && mediaRecorder.state === 'recording') {
+        mediaRecorder.stop();
+        recordAudioText.textContent = 'Record Custom Trigger';
+        recordAudioBtn.classList.remove('active');
     } else {
-        showToast('error', 'Geolocation Not Supported', 'Your browser does not support geolocation');
-    }
-}
-
-function updateMarker(type, place) {
-    let position;
-    if (place && place.geometry && place.geometry.location) {
-        if (typeof place.geometry.location.lat === 'function') {
-            position = { lat: place.geometry.location.lat(), lng: place.geometry.location.lng() };
-        } else {
-            position = { lat: place.geometry.location.lat, lng: place.geometry.location.lng };
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+            audioChunks = [];
+            mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
+            mediaRecorder.onstop = saveCustomAudio;
+            mediaRecorder.start();
+            recordAudioText.textContent = 'Recording... (Click to stop)';
+            recordAudioBtn.classList.add('active');
+            setTimeout(() => {
+                if (mediaRecorder && mediaRecorder.state === 'recording') {
+                    mediaRecorder.stop();
+                    recordAudioText.textContent = 'Record Custom Trigger';
+                    recordAudioBtn.classList.remove('active');
+                }
+            }, 5000);
+        } catch (err) {
+            showToast('error', 'Recording Failed', 'Please allow microphone access');
         }
-    } else {
-        return;
-    }
-    const marker = type === 'origin' ? originMarker : destinationMarker;
-    if (!marker) {
-        const newMarker = new google.maps.Marker({
-            position: position,
-            map: map,
-            icon: {
-                url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="${type === 'origin' ? '#000000' : '#777777'}" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>`),
-                scaledSize: new google.maps.Size(36, 36)
-            }
-        });
-        if (type === 'origin') originMarker = newMarker;
-        else destinationMarker = newMarker;
-    } else {
-        marker.setPosition(position);
-    }
-    map.panTo(position);
-    updateLocationInfo(position, place.name || (type === 'origin' ? 'Starting Point' : 'Destination'));
-}
-
-currentLocationOriginBtn.addEventListener('click', () => {
-    if (currentLocation) {
-        originSearchInput.value = 'Current Location';
-        updateMarker('origin', { geometry: { location: currentLocation } });
-    } else {
-        showToast('error', 'Location Error', 'Current location not available');
     }
 });
 
-currentLocationDestBtn.addEventListener('click', () => {
-    if (currentLocation) {
-        destinationSearchInput.value = 'Current Location';
-        updateMarker('destination', { geometry: { location: currentLocation } });
-    } else {
-        showToast('error', 'Location Error', 'Current location not available');
+async function saveCustomAudio() {
+    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+    const storageRef = storage.ref().child(`sos-audio/${currentUser.uid}.webm`);
+    try {
+        const snapshot = await storageRef.put(audioBlob);
+        const url = await snapshot.ref.getDownloadURL();
+        await db.collection('users').doc(currentUser.uid).update({ customSosAudio: url });
+        customAudioUrl = url;
+        audioStatus.textContent = 'Custom trigger set';
+        deleteAudioBtn.style.display = 'block';
+        loadCustomAudioForRecognition();
+        showToast('success', 'Trigger Saved', 'Custom SOS audio trigger saved successfully');
+    } catch (err) {
+        showToast('error', 'Save Failed', err.message);
+    }
+    if (mediaRecorder && mediaRecorder.stream) {
+        mediaRecorder.stream.getTracks().forEach(track => track.stop());
+    }
+}
+
+deleteAudioBtn.addEventListener('click', async () => {
+    try {
+        await storage.ref().child(`sos-audio/${currentUser.uid}.webm`).delete();
+        await db.collection('users').doc(currentUser.uid).update({
+            customSosAudio: firebase.firestore.FieldValue.delete()
+        });
+        customAudioUrl = null;
+        customAudioBuffer = null;
+        audioStatus.textContent = 'No custom trigger set';
+        deleteAudioBtn.style.display = 'none';
+        showToast('success', 'Trigger Deleted', 'Custom SOS audio trigger removed');
+    } catch (err) {
+        showToast('error', 'Delete Failed', err.message);
     }
 });
 
-function updateLocationInfo(position, name = 'Current Location') {
-    const geocoder = new google.maps.Geocoder();
-    geocoder.geocode({ location: position }, (results, status) => {
-        if (status === 'OK' && results[0]) {
-            locationName.textContent = name;
-            locationAddress.textContent = results[0].formatted_address;
-        } else {
-            locationAddress.textContent = 'Address not found';
-        }
-    });
+async function loadCustomAudioForRecognition() {
+    if (!customAudioUrl) return;
+    try {
+        const response = await fetch(customAudioUrl);
+        const arrayBuffer = await response.arrayBuffer();
+        audioContext = audioContext || new (window.AudioContext || window.webkitAudioContext)();
+        customAudioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+    } catch (err) {
+        showToast('error', 'Audio Load Failed', 'Could not load custom SOS audio');
+    }
 }
 
-function calculateRoute() {
-    if (!originSearchInput.value || !destinationSearchInput.value) {
-        showToast('error', 'Missing Input', 'Please enter both origin and destination');
-        return;
-    }
-    const origin = originSearchInput.value === 'Current Location' ? currentLocation : sanitizeInput(originSearchInput.value);
-    const destination = destinationSearchInput.value === 'Current Location' ? currentLocation : sanitizeInput(destinationSearchInput.value);
-    if (!origin || !destination) {
-        showToast('error', 'Location Error', 'Current location not available yet');
-        return;
-    }
-    const request = {
-        origin: origin,
-        destination: destination,
-        travelMode: routeMode,
-        provideRouteAlternatives: true
+function initSpeechRecognition() {
+    if (!('webkitSpeechRecognition' in window)) return;
+    recognition = new webkitSpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = false;
+    recognition.onresult = event => {
+        const transcript = event.results[event.results.length - 1][0].transcript.trim().toLowerCase();
+        if (!customAudioUrl) {
+            if (transcript === 'start sos') triggerSos();
+        }
     };
-    directionsService.route(request, (result, status) => {
-        if (status === 'OK') {
-            directionsRenderer.setDirections(result);
-            currentRoute = result.routes[0];
-            alternativeRoutesData = result.routes;
-            selectedRouteIndex = 0;
-            renderAlternativeRoutes();
-            alternativeRoutes.style.display = 'block';
-            updateRouteDetails();
-            locationInfo.classList.add('visible');
-        } else {
-            showToast('error', 'Route Failed', `Could not find a route: ${status}`);
-        }
-    });
-}
-
-routeSearchBtn.addEventListener('click', calculateRoute);
-
-function renderAlternativeRoutes() {
-    const fragment = document.createDocumentFragment();
-    alternativeRoutesData.forEach((route, index) => {
-        const routeOption = document.createElement('div');
-        routeOption.className = `route-option ${index === selectedRouteIndex ? 'active' : ''}`;
-        const duration = route.legs[0].duration.text;
-        const distance = route.legs[0].distance.text;
-        routeOption.innerHTML = `
-            <div class="route-option-icon"><span class="material-icons">${routeMode === 'DRIVING' ? 'directions_car' : 'directions_walk'}</span></div>
-            <div class="route-option-info">
-                <div class="route-option-title">Route ${index + 1}</div>
-                <div class="route-option-details">${duration} (${distance})</div>
-            </div>
-        `;
-        routeOption.addEventListener('click', () => {
-            selectedRouteIndex = index;
-            directionsRenderer.setRouteIndex(index);
-            currentRoute = alternativeRoutesData[index];
-            updateRouteDetails();
-            document.querySelectorAll('.route-option').forEach(opt => opt.classList.remove('active'));
-            routeOption.classList.add('active');
-        });
-        fragment.appendChild(routeOption);
-    });
-    routeAlternativesContainer.innerHTML = '';
-    routeAlternativesContainer.appendChild(fragment);
-}
-
-function updateRouteDetails() {
-    const fragment = document.createDocumentFragment();
-    if (currentRoute) {
-        currentRoute.legs[0].steps.forEach((step, index) => {
-            const stepItem = document.createElement('div');
-            stepItem.className = 'step-item';
-            stepItem.innerHTML = `
-                <div class="step-number">${index + 1}</div>
-                <div class="step-content">${step.instructions}</div>
-            `;
-            fragment.appendChild(stepItem);
-        });
-        routeDetailsContent.innerHTML = '';
-        routeDetailsContent.appendChild(fragment);
-    }
-}
-
-function startRouteTracking() {
-    if (!currentRoute) {
-        showToast('error', 'No Route', 'Please calculate a route first');
-        return;
-    }
-    if (routeUpdateWatcher) {
-        navigator.geolocation.clearWatch(routeUpdateWatcher);
-        routeUpdateWatcher = null;
-    }
-    routeProgress.style.display = 'block';
-    locationInfo.classList.add('visible');
-    alternativeRoutes.style.display = 'none';
-    map.setZoom(17);
-    map.setHeading(0);
-    map.setOptions({ padding: { bottom: 120, left: 0, top: 0, right: 0 } });
-    const destination = currentRoute.legs[0].end_location;
-    routeUpdateWatcher = navigator.geolocation.watchPosition(position => {
-        const currentPos = { lat: position.coords.latitude, lng: position.coords.longitude };
-        userMarker.setPosition(currentPos);
-        map.panTo(currentPos);
-        map.setHeading(0);
-        const remainingDistance = google.maps.geometry.spherical.computeDistanceBetween(currentPos, destination);
-        const totalDistance = currentRoute.legs[0].distance.value;
-        const progress = ((totalDistance - remainingDistance) / totalDistance) * 100;
-        routeProgressBar.style.width = `${Math.min(progress, 100)}%`;
-        routeCurrentTime.textContent = new Date().toLocaleTimeString();
-        const remainingDuration = (remainingDistance / totalDistance) * currentRoute.legs[0].duration.value;
-        const eta = new Date(Date.now() + remainingDuration * 1000);
-        routeEta.textContent = `ETA: ${eta.toLocaleTimeString()}`;
-        const polyline = new google.maps.Polyline({ path: currentRoute.overview_path });
-        const nearestPoint = google.maps.geometry.poly.isLocationOnEdge(currentPos, polyline, 0.0005);
-        if (!nearestPoint) {
-            showToast('warning', 'Off Route', 'You are off the planned route. Recalculating...');
-            calculateRouteFromCurrent(currentPos, destination);
-        }
-        if (remainingDistance < 50) {
-            navigator.geolocation.clearWatch(routeUpdateWatcher);
-            routeUpdateWatcher = null;
-            routeProgress.style.display = 'none';
-            locationInfo.classList.remove('visible');
-            showToast('success', 'Destination Reached', 'You have arrived at your destination!');
-        }
-    }, () => showToast('error', 'Location Update Failed', 'Unable to update position'), {
-        enableHighAccuracy: true,
-        timeout: 5000,
-        maximumAge: 0
-    });
-}
-
-function calculateRouteFromCurrent(currentPos, destination) {
-    const request = {
-        origin: currentPos,
-        destination: destination,
-        travelMode: routeMode
+    recognition.onstart = () => isListening = true;
+    recognition.onend = () => {
+        if (currentUser && !isListening) recognition.start();
     };
-    directionsService.route(request, (result, status) => {
-        if (status === 'OK') {
-            directionsRenderer.setDirections(result);
-            currentRoute = result.routes[0];
-            updateRouteDetails();
-        } else {
-            showToast('error', 'Recalculation Failed', `Could not recalculate route: ${status}`);
-        }
-    });
+    recognition.onerror = err => {
+        if (err.error === 'no-speech' || err.error === 'aborted') return;
+        showToast('error', 'Speech Recognition Error', err.error);
+        isListening = false;
+        setTimeout(() => recognition.start(), 1000);
+    };
+    recognition.start();
+    navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(stream => {
+            audioContext = audioContext || new (window.AudioContext || window.webkitAudioContext)();
+            const source = audioContext.createMediaStreamSource(stream);
+            analyser = audioContext.createAnalyser();
+            analyser.fftSize = 2048;
+            source.connect(analyser);
+            checkAudioForCustomTrigger();
+        })
+        .catch(err => showToast('error', 'Microphone Access Denied', 'Please allow microphone access for SOS trigger'));
 }
 
-sosButton.addEventListener('click', () => {
+function checkAudioForCustomTrigger() {
+    if (!customAudioBuffer || !analyser) return;
+    const bufferLength = analyser.frequencyBinCount;
+    const dataArray = new Float32Array(bufferLength);
+    const customData = customAudioBuffer.getChannelData(0);
+    const checkInterval = setInterval(() => {
+        if (!isListening || !currentUser) {
+            clearInterval(checkInterval);
+            return;
+        }
+        analyser.getFloatTimeDomainData(dataArray);
+        const correlation = calculateCorrelation(dataArray, customData.slice(0, bufferLength));
+        if (correlation > 0.85) triggerSos();
+    }, 100);
+}
+
+function calculateCorrelation(array1, array2) {
+    const len = Math.min(array1.length, array2.length);
+    let sumXY = 0, sumX = 0, sumY = 0, sumX2 = 0, sumY2 = 0;
+    for (let i = 0; i < len; i++) {
+        const x = array1[i];
+        const y = array2[i];
+        sumXY += x * y;
+        sumX += x;
+        sumY += y;
+        sumX2 += x * x;
+        sumY2 += y * y;
+    }
+    const numerator = sumXY - (sumX * sumY) / len;
+    const denominator = Math.sqrt((sumX2 - (sumX * sumX) / len) * (sumY2 - (sumY * sumY) / len));
+    return denominator === 0 ? 0 : numerator / denominator;
+}
+
+function triggerSos() {
     if (activeSosId) {
         showModal(sosEndModal);
-    } else {
-        showModal(sosConfirmModal);
-        sosCountdown = 10;
-        document.getElementById('sos-timer').textContent = `Time remaining: ${sosCountdown}s`;
-        if (sosInterval) clearInterval(sosInterval);
-        sosInterval = setInterval(() => {
-            sosCountdown--;
-            document.getElementById('sos-timer').textContent = `Time remaining: ${sosCountdown}s`;
-            if (sosCountdown <= 0) {
-                clearInterval(sosInterval);
-                triggerSos();
-            }
-        }, 1000);
+        return;
     }
-});
+    showModal(sosConfirmModal);
+    sosCountdown = 10;
+    document.getElementById('sos-timer').textContent = `Time remaining: ${sosCountdown}s`;
+    sosInterval = setInterval(() => {
+        sosCountdown--;
+        document.getElementById('sos-timer').textContent = `Time remaining: ${sosCountdown}s`;
+        if (sosCountdown <= 0) {
+            clearInterval(sosInterval);
+            sendSosAlert();
+        }
+    }, 1000);
+}
+
+sosButton.addEventListener('click', triggerSos);
+
+closeSosConfirmBtn.addEventListener('click', () => hideModal(sosConfirmModal));
 
 cancelSosBtn.addEventListener('click', () => {
     const password = document.getElementById('sos-password').value;
@@ -2043,100 +1973,121 @@ cancelSosBtn.addEventListener('click', () => {
         clearInterval(sosInterval);
         hideModal(sosConfirmModal);
     } else {
-        showToast('error', 'Invalid Password', 'Incorrect password');
+        showToast('error', 'Invalid Password', 'Incorrect password to cancel SOS');
     }
 });
 
 confirmSosBtn.addEventListener('click', () => {
     clearInterval(sosInterval);
-    triggerSos();
+    sendSosAlert();
 });
-
-function triggerSos() {
-    if (!currentLocation) {
-        showToast('error', 'Location Error', 'Cannot send SOS without location');
-        return;
-    }
-    const sosData = {
-        userId: currentUser.uid,
-        location: new firebase.firestore.GeoPoint(currentLocation.lat, currentLocation.lng),
-        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-        active: true
-    };
-    db.collection('sosAlerts').add(sosData)
-        .then(docRef => {
-            activeSosId = docRef.id;
-            hideModal(sosConfirmModal);
-            sosIcon.textContent = 'warning';
-        })
-        .catch(err => showToast('error', 'SOS Failed', err.message));
-}
-
-confirmEndSosBtn.addEventListener('click', () => {
-    const password = document.getElementById('sos-end-password').value;
-    if (password === sosPassword) {
-        db.collection('sosAlerts').doc(activeSosId).update({ active: false })
-            .then(() => {
-                activeSosId = null;
-                hideModal(sosEndModal);
-                sosIcon.textContent = 'emergency';
-            })
-            .catch(err => showToast('error', 'End SOS Failed', err.message));
-    } else {
-        showToast('error', 'Invalid Password', 'Incorrect password');
-    }
-});
-
-closeSosConfirmBtn.addEventListener('click', () => hideModal(sosConfirmModal));
 
 closeSosEndBtn.addEventListener('click', () => hideModal(sosEndModal));
 
 cancelEndSosBtn.addEventListener('click', () => hideModal(sosEndModal));
 
+confirmEndSosBtn.addEventListener('click', () => {
+    const password = document.getElementById('sos-end-password').value;
+    if (password === sosPassword) {
+        endSosAlert();
+        hideModal(sosEndModal);
+    } else {
+        showToast('error', 'Invalid Password', 'Incorrect password to end SOS');
+    }
+});
+
+async function sendSosAlert() {
+    if (!currentLocation) {
+        showToast('error', 'SOS Failed', 'Location not available');
+        return;
+    }
+    const sosData = {
+        userId: currentUser.uid,
+        location: { lat: currentLocation.lat, lng: currentLocation.lng },
+        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+        status: 'active'
+    };
+    try {
+        const docRef = await db.collection('sosAlerts').add(sosData);
+        activeSosId = docRef.id;
+        sosIcon.textContent = 'sos';
+        hideModal(sosConfirmModal);
+        notifyEmergencyContacts(sosData);
+    } catch (err) {
+        showToast('error', 'SOS Failed', err.message);
+    }
+}
+
+function endSosAlert() {
+    if (!activeSosId) return;
+    db.collection('sosAlerts').doc(activeSosId).update({ status: 'resolved' })
+        .then(() => {
+            activeSosId = null;
+            sosIcon.textContent = 'emergency';
+            showToast('success', 'SOS Ended', 'Emergency alert has been resolved');
+        })
+        .catch(err => showToast('error', 'End SOS Failed', err.message));
+}
+
+function notifyEmergencyContacts(sosData) {
+    db.collection('users').doc(currentUser.uid).collection('emergencyContacts').get()
+        .then(querySnapshot => {
+            querySnapshot.forEach(doc => {
+                const contact = doc.data();
+                db.collection('users').where('email', '==', contact.email).get()
+                    .then(contactQuery => {
+                        contactQuery.forEach(contactDoc => {
+                            db.collection('users').doc(contactDoc.id).collection('notifications').add({
+                                type: 'sos',
+                                message: `${currentUser.email} has triggered an SOS alert`,
+                                location: sosData.location,
+                                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                                read: false
+                            });
+                        });
+                    });
+            });
+        });
+}
+
 function listenForSosAlerts() {
     db.collection('users').doc(currentUser.uid).collection('emergencyContacts').get()
         .then(querySnapshot => {
-            const contactGuardianKeys = querySnapshot.docs.map(doc => doc.data().guardianKey);
-            if (contactGuardianKeys.length === 0) {
-                return;
-            }
-            db.collection('users').where('guardianKey', 'in', contactGuardianKeys).get()
-                .then(userSnapshot => {
-                    const contactUserIds = userSnapshot.docs.map(doc => doc.id);
+            const guardianKeys = querySnapshot.docs.map(doc => doc.data().guardianKey);
+            if (guardianKeys.length === 0) return;
+            db.collection('users').where('guardianKey', 'in', guardianKeys).get()
+                .then(userQuery => {
+                    const userIds = userQuery.docs.map(doc => doc.id);
                     db.collection('sosAlerts')
-                        .where('userId', 'in', contactUserIds)
-                        .where('active', '==', true)
+                        .where('userId', 'in', userIds)
+                        .where('status', '==', 'active')
                         .onSnapshot(snapshot => {
                             snapshot.docChanges().forEach(change => {
-                                if (change.type === 'added') {
+                                if (change.type === 'added' && !firstSosReceived[change.doc.id]) {
                                     const sosData = change.doc.data();
-                                    const sosId = change.doc.id;
-                                    if (!firstSosReceived[sosId]) {
-                                        firstSosReceived[sosId] = true;
-                                        db.collection('users').doc(sosData.userId).get()
-                                            .then(doc => {
-                                                if (doc.exists) {
-                                                    const userData = doc.data();
-                                                    const location = { lat: sosData.location.latitude, lng: sosData.location.longitude };
-                                                    showEmergencyNotification(`${userData.fullName} has triggered an SOS alert!`, location);
-                                                }
-                                            });
-                                    }
-                                } else if (change.type === 'modified' && !change.doc.data().active) {
-                                    firstSosReceived[change.doc.id] = false;
+                                    db.collection('users').doc(sosData.userId).get()
+                                        .then(userDoc => {
+                                            const userData = userDoc.data();
+                                            const message = `${userData.fullName || 'A contact'} has triggered an SOS alert!`;
+                                            showEmergencyNotification(message, sosData.location);
+                                            firstSosReceived[change.doc.id] = true;
+                                        });
                                 }
                             });
                         });
                 });
-        })
-        .catch(err => showToast('error', 'SOS Listener Failed', err.message));
+        });
 }
 
 navigateToBtn.addEventListener('click', () => {
     if (lastSosLocation && map) {
-        originSearchInput.value = 'Current Location';
-        destinationSearchInput.value = `${lastSosLocation.lat}, ${lastSosLocation.lng}`;
-        calculateRoute();
+        map.setCenter(lastSosLocation);
+        if (destinationMarker) destinationMarker.setMap(null);
+        destinationMarker = new google.maps.Marker({
+            position: lastSosLocation,
+            map: map,
+            icon: { url: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png' }
+        });
         emergencyNotification.classList.remove('active');
         showPage('home');
     }
@@ -2146,111 +2097,220 @@ closeEmergencyNotificationBtn.addEventListener('click', () => {
     emergencyNotification.classList.remove('active');
 });
 
-shareLocationBtn.addEventListener('click', () => {
+function initMap() {
+    map = new google.maps.Map(mapElement, {
+        zoom: 15,
+        disableDefaultUI: true,
+        gestureHandling: 'greedy'
+    });
+    directionsService = new google.maps.DirectionsService();
+    directionsRenderer = new google.maps.DirectionsRenderer({
+        map: map,
+        suppressMarkers: true,
+        polylineOptions: { strokeColor: '#333333', strokeWeight: 5 }
+    });
+    const originAutocomplete = new google.maps.places.Autocomplete(originSearchInput);
+    const destinationAutocomplete = new google.maps.places.Autocomplete(destinationSearchInput);
+    originAutocomplete.addListener('place_changed', () => updateRoute());
+    destinationAutocomplete.addListener('place_changed', () => updateRoute());
+    navigator.geolocation.watchPosition(
+        position => {
+            currentLocation = { lat: position.coords.latitude, lng: position.coords.longitude };
+            if (!userMarker) {
+                userMarker = new google.maps.Marker({
+                    position: currentLocation,
+                    map: map,
+                    icon: { url: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png' }
+                });
+                map.setCenter(currentLocation);
+            } else {
+                userMarker.setPosition(currentLocation);
+            }
+            updateLocationInfo();
+        },
+        () => showToast('error', 'Location Error', 'Unable to access location'),
+        { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+    );
+}
+
+currentLocationOriginBtn.addEventListener('click', () => {
     if (currentLocation) {
-        const locationText = `My location: https://maps.google.com/?q=${currentLocation.lat},${currentLocation.lng}`;
-        navigator.clipboard.writeText(locationText)
-            .then(() => showToast('success', 'Location Copied', 'Location URL copied to clipboard'))
-            .catch(() => showToast('error', 'Copy Failed', 'Could not copy location'));
-    } else {
-        showToast('error', 'Location Error', 'Current location not available');
+        originSearchInput.value = 'My Location';
+        updateRoute();
     }
 });
 
-startRouteBtn.addEventListener('click', startRouteTracking);
-
-routeDetailsBtn.addEventListener('click', () => {
-    routeDetailsPanel.classList.add('visible');
+currentLocationDestBtn.addEventListener('click', () => {
+    if (currentLocation) {
+        destinationSearchInput.value = 'My Location';
+        updateRoute();
+    }
 });
 
-closeRouteDetailsBtn.addEventListener('click', () => {
-    routeDetailsPanel.classList.remove('visible');
-});
+routeSearchBtn.addEventListener('click', () => updateRoute());
 
 drivingModeBtn.addEventListener('click', () => {
     routeMode = 'DRIVING';
     drivingModeBtn.classList.add('active');
     walkingModeBtn.classList.remove('active');
-    if (originSearchInput.value && destinationSearchInput.value) calculateRoute();
+    updateRoute();
 });
 
 walkingModeBtn.addEventListener('click', () => {
     routeMode = 'WALKING';
     walkingModeBtn.classList.add('active');
     drivingModeBtn.classList.remove('active');
-    if (originSearchInput.value && destinationSearchInput.value) calculateRoute();
+    updateRoute();
+});
+
+function updateRoute() {
+    if (!originSearchInput.value || !destinationSearchInput.value) return;
+    const origin = originSearchInput.value === 'My Location' ? currentLocation : originSearchInput.value;
+    const destination = destinationSearchInput.value === 'My Location' ? currentLocation : destinationSearchInput.value;
+    directionsService.route(
+        {
+            origin: origin,
+            destination: destination,
+            travelMode: routeMode,
+            provideRouteAlternatives: true
+        },
+        (result, status) => {
+            if (status === 'OK') {
+                directionsRenderer.setDirections(result);
+                currentRoute = result.routes[0];
+                alternativeRoutesData = result.routes;
+                selectedRouteIndex = 0;
+                if (originMarker) originMarker.setMap(null);
+                if (destinationMarker) destinationMarker.setMap(null);
+                originMarker = new google.maps.Marker({
+                    position: currentRoute.legs[0].start_location,
+                    map: map,
+                    icon: { url: 'http://maps.google.com/mapfiles/ms/icons/green-dot.png' }
+                });
+                destinationMarker = new google.maps.Marker({
+                    position: currentRoute.legs[0].end_location,
+                    map: map,
+                    icon: { url: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png' }
+                });
+                map.fitBounds(currentRoute.bounds);
+                locationInfo.classList.add('visible');
+                locationName.textContent = currentRoute.legs[0].end_address.split(',')[0];
+                locationAddress.textContent = currentRoute.legs[0].end_address;
+                populateAlternativeRoutes();
+            } else {
+                showToast('error', 'Route Error', 'Unable to find route');
+            }
+        }
+    );
+}
+
+function updateLocationInfo() {
+    if (!currentLocation) return;
+    const geocoder = new google.maps.Geocoder();
+    geocoder.geocode({ location: currentLocation }, (results, status) => {
+        if (status === 'OK' && results[0]) {
+            locationAddress.textContent = results[0].formatted_address;
+            locationName.textContent = results[0].address_components[0].short_name;
+        }
+    });
+}
+
+function populateAlternativeRoutes() {
+    routeAlternativesContainer.innerHTML = '';
+    alternativeRoutesData.forEach((route, index) => {
+        const routeOption = document.createElement('div');
+        routeOption.className = `route-option ${index === selectedRouteIndex ? 'active' : ''}`;
+        routeOption.innerHTML = `
+            <div class="route-option-icon"><span class="material-icons">${routeMode === 'WALKING' ? 'directions_walk' : 'directions_car'}</span></div>
+            <div class="route-option-info">
+                <div class="route-option-title">Route ${index + 1}</div>
+                <div class="route-option-details">${route.legs[0].distance.text} - ${route.legs[0].duration.text}</div>
+            </div>
+        `;
+        routeOption.addEventListener('click', () => {
+            selectedRouteIndex = index;
+            directionsRenderer.setRouteIndex(index);
+            currentRoute = alternativeRoutesData[index];
+            document.querySelectorAll('.route-option').forEach(opt => opt.classList.remove('active'));
+            routeOption.classList.add('active');
+            if (originMarker) originMarker.setPosition(currentRoute.legs[0].start_location);
+            if (destinationMarker) destinationMarker.setPosition(currentRoute.legs[0].end_location);
+            map.fitBounds(currentRoute.bounds);
+        });
+        routeAlternativesContainer.appendChild(routeOption);
+    });
+    alternativeRoutes.style.display = alternativeRoutesData.length > 1 ? 'block' : 'none';
+}
+
+shareLocationBtn.addEventListener('click', () => {
+    if (currentLocation) {
+        const locationUrl = `https://www.google.com/maps?q=${currentLocation.lat},${currentLocation.lng}`;
+        navigator.clipboard.writeText(locationUrl)
+            .then(() => showToast('success', 'Location Copied', 'Location URL copied to clipboard'))
+            .catch(err => showToast('error', 'Copy Failed', err.message));
+    }
+});
+
+startRouteBtn.addEventListener('click', () => {
+    if (!currentRoute) return;
+    routeProgress.style.display = 'block';
+    alternativeRoutes.style.display = 'none';
+    startRouteBtn.style.display = 'none';
+    const totalDistance = currentRoute.legs[0].distance.value;
+    const totalDuration = currentRoute.legs[0].duration.value;
+    routeUpdateWatcher = setInterval(() => {
+        if (!currentLocation) return;
+        const remainingDistance = calculateRemainingDistance(currentLocation, currentRoute.legs[0].end_location);
+        const progress = ((totalDistance - remainingDistance) / totalDistance) * 100;
+        routeProgressBar.style.width = `${progress}%`;
+        const elapsedTime = (totalDistance - remainingDistance) / totalDistance * totalDuration;
+        routeCurrentTime.textContent = `Elapsed: ${Math.floor(elapsedTime / 60)}m ${Math.floor(elapsedTime % 60)}s`;
+        const etaTime = totalDuration - elapsedTime;
+        routeEta.textContent = `ETA: ${Math.floor(etaTime / 60)}m ${Math.floor(etaTime % 60)}s`;
+        if (progress >= 99) {
+            clearInterval(routeUpdateWatcher);
+            routeProgress.style.display = 'none';
+            startRouteBtn.style.display = 'inline-flex';
+            showToast('success', 'Destination Reached', 'You have arrived at your destination');
+        }
+    }, 1000);
+});
+
+function calculateRemainingDistance(current, destination) {
+    const radlat1 = Math.PI * current.lat / 180;
+    const radlat2 = Math.PI * destination.lat() / 180;
+    const theta = (current.lng - destination.lng()) * Math.PI / 180;
+    let dist = Math.sin(radlat1) * Math.sin(radlat2) + Math.cos(radlat1) * Math.cos(radlat2) * Math.cos(theta);
+    dist = Math.acos(dist) * 180 / Math.PI * 60 * 1.1515 * 1609.344;
+    return dist;
+}
+
+routeDetailsBtn.addEventListener('click', () => {
+    if (!currentRoute) return;
+    routeDetailsPanel.classList.add('visible');
+    routeDetailsContent.innerHTML = '';
+    currentRoute.legs[0].steps.forEach((step, index) => {
+        const stepItem = document.createElement('div');
+        stepItem.className = 'step-item';
+        stepItem.innerHTML = `
+            <div class="step-number">${index + 1}</div>
+            <div class="step-content">${step.instructions} (${step.distance.text})</div>
+        `;
+        routeDetailsContent.appendChild(stepItem);
+    });
+});
+
+closeRouteDetailsBtn.addEventListener('click', () => {
+    routeDetailsPanel.classList.remove('visible');
 });
 
 navItems.forEach(item => {
     item.addEventListener('click', e => {
         e.preventDefault();
-        const page = item.dataset.page;
-        if (page === 'sos') return;
-        showPage(page);
+        if (item.dataset.page === 'sos') return;
+        showPage(item.dataset.page);
     });
 });
-
-const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-let recognition = null;
-let isListening = true;
-
-function initSpeechRecognition() {
-    if (!SpeechRecognition) {
-        showToast('error', 'Speech Recognition Not Supported', 'Your browser does not support speech recognition');
-        return;
-    }
-    recognition = new SpeechRecognition();
-    recognition.continuous = true;
-    recognition.interimResults = false;
-    recognition.lang = 'en-US';
-    recognition.onresult = (event) => {
-        const transcript = event.results[event.results.length - 1][0].transcript.trim().toLowerCase();
-        if (transcript === 'start sos' && currentUser) {
-            if (activeSosId) {
-                showToast('info', 'SOS Already Active', 'An SOS is already in progress');
-            } else {
-                showModal(sosConfirmModal);
-                sosCountdown = 10;
-                document.getElementById('sos-timer').textContent = `Time remaining: ${sosCountdown}s`;
-                if (sosInterval) clearInterval(sosInterval);
-                sosInterval = setInterval(() => {
-                    sosCountdown--;
-                    document.getElementById('sos-timer').textContent = `Time remaining: ${sosCountdown}s`;
-                    if (sosCountdown <= 0) {
-                        clearInterval(sosInterval);
-                        triggerSos();
-                    }
-                }, 1000);
-            }
-        }
-    };
-    recognition.onerror = (event) => {
-        if (event.error === 'no-speech' || event.error === 'aborted') return;
-        showToast('error', 'Speech Recognition Error', `Error: ${event.error}`);
-        if (isListening) {
-            setTimeout(() => recognition.start(), 1000);
-        }
-    };
-    recognition.onend = () => {
-        if (isListening) {
-            recognition.start();
-        }
-    };
-    if (isListening) {
-        recognition.start();
-    }
-}
-
-function toggleSpeechRecognition() {
-    if (!recognition) return;
-    if (isListening) {
-        recognition.stop();
-        isListening = false;
-    } else {
-        recognition.start();
-        isListening = true;
-    }
-}
     </script>
 </body>
 </html>
