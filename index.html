@@ -9,1156 +9,9 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-storage-compat.js"></script>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA41wHVKnsb1RNhcftpHS5qNwvYz59nXIE&libraries=places" async defer></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            outline: none;
-            font-family: 'Geist Mono', monospace;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        :root {
-            --primary: #1E3A8A;
-            --sos: #D32F2F;
-            --black: #000000;
-            --white: #FFFFFF;
-            --gray-100: #F5F5F5;
-            --gray-200: #E0E0E0;
-            --gray-300: #CCCCCC;
-            --gray-500: #777777;
-            --gray-700: #333333;
-            --gray-900: #1A1A1A;
-            --border-radius: 12px;
-        }
-
-        body {
-            background-color: var(--white);
-            color: var(--black);
-            min-height: 100vh;
-            position: relative;
-            overflow: hidden;
-            padding-top: env(safe-area-inset-top);
-            padding-bottom: env(safe-area-inset-bottom);
-            padding-left: env(safe-area-inset-left);
-            padding-right: env(safe-area-inset-right);
-        }
-
-        .container {
-            padding: 20px;
-            max-width: 100%;
-        }
-
-        .flex {
-            display: flex;
-        }
-
-        .flex-col {
-            flex-direction: column;
-        }
-
-        .items-center {
-            align-items: center;
-        }
-
-        .justify-center {
-            justify-content: center;
-        }
-
-        .justify-between {
-            justify-content: space-between;
-        }
-
-        .text-center {
-            text-align: center;
-        }
-
-        .text-primary {
-            color: var(--primary);
-        }
-
-        .text-sos {
-            color: var(--sos);
-        }
-
-        .text-gray {
-            color: var(--gray-500);
-        }
-
-        .text-white {
-            color: var(--white);
-        }
-
-        .bg-primary {
-            background-color: var(--primary);
-        }
-
-        .bg-sos {
-            background-color: var(--sos);
-        }
-
-        .rounded {
-            border-radius: var(--border-radius);
-        }
-
-        .rounded-full {
-            border-radius: 50%;
-        }
-
-        .shadow {
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        .w-full {
-            width: 100%;
-        }
-
-        .mr-2 {
-            margin-right: 8px;
-        }
-
-        .mb-2 {
-            margin-bottom: 8px;
-        }
-
-        .mb-4 {
-            margin-bottom: 16px;
-        }
-
-        .mb-6 {
-            margin-bottom: 24px;
-        }
-
-        .mt-2 {
-            margin-top: 8px;
-        }
-
-        .mt-4 {
-            margin-top: 16px;
-        }
-
-        .p-2 {
-            padding: 8px;
-        }
-
-        .p-4 {
-            padding: 16px;
-        }
-
-        .pt-6 {
-            padding-top: 24px;
-        }
-
-        .hidden {
-            display: none !important;
-        }
-
-        .page {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            min-height: 100vh;
-            padding-bottom: 80px;
-            opacity: 0;
-            transform: translateX(100%);
-            z-index: 1;
-            overflow-y: hidden;
-            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;
-        }
-
-        .page.active {
-            opacity: 1;
-            transform: translateX(0);
-            z-index: 10;
-        }
-
-        .page.exiting {
-            transform: translateX(-100%);
-            opacity: 0;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-label {
-            display: block;
-            font-size: 16px;
-            font-weight: 500;
-            margin-bottom: 6px;
-            color: var(--black);
-        }
-
-        .form-input {
-            width: 100%;
-            padding: 14px 16px;
-            border: 1px solid var(--gray-200);
-            border-radius: var(--border-radius);
-            font-size: 18px;
-            background-color: var(--white);
-            color: var(--black);
-            transition: border-color 0.3s ease;
-        }
-
-        .form-input:focus {
-            border-color: var(--gray-700);
-        }
-
-        .form-input::placeholder {
-            color: var(--gray-500);
-            font-size: 16px;
-        }
-
-        .form-error {
-            color: var(--gray-700);
-            font-size: 12px;
-            margin-top: 4px;
-            min-height: 18px;
-        }
-
-        .form-help {
-            color: var(--gray-500);
-            font-size: 12px;
-            margin-top: 4px;
-        }
-
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 14px 20px;
-            border-radius: var(--border-radius);
-            font-weight: 500;
-            cursor: pointer;
-            border: none;
-            font-size: 18px;
-            transition: transform 0.2s ease, opacity 0.3s ease;
-            min-width: 48px;
-            min-height: 48px;
-        }
-
-        .btn:hover {
-            transform: scale(1.05);
-            opacity: 0.9;
-        }
-
-        .btn-primary {
-            background-color: var(--primary);
-            color: var(--white);
-        }
-
-        .btn-sos {
-            background-color: var(--sos);
-            color: var(--white);
-        }
-
-        .btn-outline {
-            background-color: var(--white);
-            border: 1px solid var(--gray-200);
-            color: var(--black);
-        }
-
-        .btn-icon {
-            background: none;
-            border: none;
-            color: var(--black);
-            cursor: pointer;
-            padding: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            transition: background-color 0.3s ease, transform 0.2s ease;
-            min-width: 48px;
-            min-height: 48px;
-        }
-
-        .btn-icon:hover {
-            background-color: var(--gray-100);
-            transform: scale(1.1);
-        }
-
-        .material-icons {
-            font-size: 24px;
-        }
-
-        .auth-container {
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            padding: 32px 20px;
-            background-color: var(--white);
-        }
-
-        .auth-logo {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-
-        .auth-logo h1 {
-            font-size: 32px;
-            font-weight: 700;
-            color: var(--black);
-            margin-bottom: 8px;
-        }
-
-        .auth-logo p {
-            color: var(--gray-500);
-            font-size: 16px;
-        }
-
-        .auth-link {
-            color: var(--gray-700);
-            text-decoration: none;
-            font-weight: 500;
-            transition: color 0.3s ease;
-        }
-
-        .auth-link:hover {
-            color: var(--black);
-            text-decoration: underline;
-        }
-
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 80px;
-            background-color: var(--white);
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            box-shadow: 0 -1px 6px rgba(0, 0, 0, 0.1);
-            z-index: 100;
-            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .bottom-nav.hidden {
-            transform: translateY(100%);
-        }
-
-        .bottom-nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-decoration: none;
-            color: var(--gray-500);
-            font-size: 10px;
-            padding: 8px 0;
-            width: 25%;
-            transition: color 0.3s ease, transform 0.2s ease;
-            position: relative;
-        }
-
-        .bottom-nav-item:hover {
-            transform: scale(1.1);
-        }
-
-        .bottom-nav-item.active {
-            color: var(--black);
-        }
-
-        .bottom-nav-item .material-icons {
-            font-size: 28px;
-            margin-bottom: 4px;
-        }
-
-        .sos-nav-item {
-            width: 50%;
-            margin-top: -32px;
-        }
-
-        .sos-nav-button {
-            background: linear-gradient(135deg, var(--sos), #B71C1C);
-            color: var(--white);
-            width: 72px;
-            height: 72px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 4px;
-            box-shadow: 0 6px 16px rgba(211, 47, 47, 0.4);
-            transition: transform 0.3s ease;
-        }
-
-        .sos-nav-button:hover {
-            transform: scale(1.15);
-            opacity: 0.9;
-        }
-
-        .sos-nav-button .material-icons {
-            font-size: 28px;
-            margin-bottom: 0;
-        }
-
-        .map-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 80px;
-            width: 100%;
-            height: calc(100vh - 80px);
-            overflow: hidden;
-            z-index: 0;
-        }
-
-        #map {
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            z-index: 1;
-            touch-action: none;
-        }
-
-        .map-search-container {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            right: 20px;
-            background: var(--white);
-            border-radius: 12px;
-            padding: 8px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            z-index: 100;
-            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .map-search {
-            display: flex;
-            align-items: center;
-            padding: 4px;
-        }
-
-        .search-icon {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 48px;
-            height: 48px;
-            color: var(--gray-500);
-        }
-
-        .map-search input {
-            flex: 1;
-            padding: 12px;
-            border: none;
-            font-size: 18px;
-            background-color: transparent;
-            color: var(--black);
-        }
-
-        .map-search input::placeholder {
-            color: var(--gray-500);
-        }
-
-        .location-btn {
-            width: 48px;
-            height: 48px;
-            background: none;
-            border: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            color: var(--gray-500);
-            transition: transform 0.2s ease;
-        }
-
-        .location-btn:hover {
-            transform: scale(1.1);
-        }
-
-        .route-search-btn {
-            width: 100%;
-            height: 48px;
-            background-color: var(--primary);
-            color: var(--white);
-            border: none;
-            border-radius: var(--border-radius);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 500;
-            transition: transform 0.2s ease;
-        }
-
-        .route-search-btn:hover {
-            transform: scale(1.05);
-        }
-
-        .route-search-btn .material-icons {
-            margin-right: 8px;
-        }
-
-        .route-btn-text {
-            font-size: 18px;
-        }
-
-        .location-info {
-            position: fixed;
-            left: 0;
-            right: 0;
-            bottom: 80px;
-            background: var(--white);
-            border-radius: 16px 16px 0 0;
-            padding: 16px 16px 60px 16px;
-            box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
-            z-index: 150;
-            height: auto;
-            max-height: 50vh;
-            overflow-y: auto;
-            -ms-overflow-style: none;
-            scrollbar-width: thin;
-            scrollbar-color: var(--gray-700) var(--gray-200);
-            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            transform: translateY(100%);
-            display: none;
-        }
-
-        .location-info::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        .location-info::-webkit-scrollbar-track {
-            background: var(--gray-200);
-            border-radius: 4px;
-        }
-
-        .location-info::-webkit-scrollbar-thumb {
-            background: var(--gray-700);
-            border-radius: 4px;
-        }
-
-        .location-info::-webkit-scrollbar-thumb:hover {
-            background: #555;
-        }
-
-        .location-info.visible {
-            transform: translateY(0);
-            display: block;
-        }
-
-        .location-info h3 {
-            font-size: 20px;
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-
-        .location-info p {
-            font-size: 14px;
-            color: var(--gray-500);
-            margin-bottom: 12px;
-        }
-
-        .location-actions {
-            display: flex;
-            gap: 12px;
-            justify-content: space-between;
-        }
-
-        .route-options {
-            margin: 12px 0;
-        }
-
-        .route-mode-selector {
-            display: flex;
-            justify-content: center;
-            background-color: var(--gray-100);
-            border-radius: var(--border-radius);
-            padding: 4px;
-            width: fit-content;
-            margin: 0 auto 12px;
-            border: 1px solid var(--gray-200);
-        }
-
-        .route-mode-btn {
-            border: none;
-            background: none;
-            border-radius: 6px;
-            width: 48px;
-            height: 48px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 4px;
-            cursor: pointer;
-            color: var(--gray-500);
-            transition: background-color 0.3s ease, transform 0.2s ease;
-        }
-
-        .route-mode-btn:hover {
-            transform: scale(1.1);
-        }
-
-        .route-mode-btn.active {
-            background-color: var(--white);
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            color: var(--black);
-        }
-
-        .route-mode-btn .material-icons {
-            font-size: 24px;
-        }
-
-        .alternative-routes {
-            margin-top: 12px;
-        }
-
-        .route-option {
-            display: flex;
-            align-items: center;
-            padding: 10px;
-            border: 1px solid var(--gray-200);
-            border-radius: var(--border-radius);
-            margin-bottom: 8px;
-            cursor: pointer;
-            background-color: var(--white);
-            transition: transform 0.3s ease, border-color 0.3s ease;
-        }
-
-        .route-option:hover {
-            transform: translateX(5px);
-        }
-
-        .route-option.active {
-            border-color: var(--gray-700);
-            background-color: var(--gray-100);
-        }
-
-        .route-option-icon {
-            background-color: var(--white);
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 12px;
-            color: var(--black);
-        }
-
-        .route-option-info {
-            flex: 1;
-        }
-
-        .route-option-title {
-            font-weight: 500;
-            margin-bottom: 2px;
-            color: var(--black);
-        }
-
-        .route-option-details {
-            font-size: 12px;
-            color: var(--gray-500);
-        }
-
-        .route-details {
-            position: fixed;
-            top: 0;
-            right: -350px;
-            width: 320px;
-            height: calc(100vh - 80px);
-            background-color: var(--white);
-            z-index: 200;
-            box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            border-left: 1px solid var(--gray-200);
-            overflow-y: auto;
-            transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .route-details.visible {
-            right: 0;
-        }
-
-        .route-details-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-            padding-bottom: 8px;
-            border-bottom: 1px solid var(--gray-200);
-        }
-
-        .route-details-content {
-            flex: 1;
-            overflow-y: auto;
-        }
-
-        .step-item {
-            padding: 12px;
-            border-bottom: 1px solid var(--gray-200);
-            display: flex;
-            transition: background-color 0.3s ease;
-        }
-
-        .step-item:hover {
-            background-color: var(--gray-100);
-        }
-
-        .step-item:last-child {
-            border-bottom: none;
-        }
-
-        .step-number {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            background-color: var(--gray-700);
-            color: var(--white);
-            display: flex;
-            align-items: center;
-            justify All: center;
-            font-size: 12px;
-            margin-right: 12px;
-            flex-shrink: 0;
-        }
-
-        .step-content {
-            flex: 1;
-            color: var(--black);
-        }
-
-        .route-progress {
-            background-color: var(--gray-100);
-            border-radius: var(--border-radius);
-            padding: 12px;
-            margin-bottom: 12px;
-            border: 1px solid var(--gray-200);
-        }
-
-        .progress-bar-container {
-            height: 6px;
-            background-color: var(--gray-200);
-            border-radius: 3px;
-            margin: 8px 0;
-            overflow: hidden;
-        }
-
-        .progress-bar {
-            height: 100%;
-            background-color: var(--gray-700);
-            width: 0%;
-            transition: width 0.5s ease-in-out;
-        }
-
-        .eta-info {
-            display: flex;
-            justify-content: space-between;
-            font-size: 12px;
-            color: var(--gray-500);
-        }
-
-        .profile-container {
-            padding: 20px;
-            height: calc(100vh - 80px);
-            overflow-y: auto;
-            background-color: var(--gray-100);
-        }
-
-        .profile-header {
-            background-color: var(--white);
-            padding: 20px;
-            border-radius: var(--border-radius);
-            margin-bottom: 20px;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-            display: flex;
-            align-items: center;
-        }
-
-        .profile-avatar {
-            width: 60px;
-            height: 60px;
-            background-color: var(--primary);
-            color: var(--white);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 16px;
-            font-size: 28px;
-        }
-
-        .profile-info {
-            flex: 1;
-        }
-
-        .profile-name {
-            font-size: 22px;
-            font-weight: 600;
-            color: var(--black);
-            margin-bottom: 4px;
-        }
-
-        .profile-email {
-            font-size: 14px;
-            color: var(--gray-500);
-        }
-
-        .profile-section {
-            background-color: var(--white);
-            border-radius: var(--border-radius);
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-        }
-
-        .section-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: var(--black);
-            margin-bottom: 12px;
-        }
-
-        .guardian-key {
-            background-color: var(--gray-100);
-            padding: 12px;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 500;
-            text-align: center;
-            color: var(--black);
-            border: 1px dashed var(--gray-200);
-            word-break: break-all;
-        }
-
-        .contacts-list {
-            max-height: 250px;
-            overflow-y: auto;
-        }
-
-        .contact-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 12px 0;
-            border-bottom: 1px solid var(--gray-200);
-        }
-
-        .contact-item:last-child {
-            border-bottom: none;
-        }
-
-        .contact-info {
-            display: flex;
-            align-items: center;
-            flex: 1;
-        }
-
-        .contact-avatar {
-            width: 40px;
-            height: 40px;
-            background-color: var(--gray-200);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 12px;
-            color: var(--black);
-        }
-
-        .contact-details h4 {
-            font-size: 16px;
-            font-weight: 500;
-            color: var(--black);
-            margin-bottom: 2px;
-        }
-
-        .contact-relation {
-            font-size: 12px;
-            color: var(--gray-500);
-        }
-
-        .contact-actions button {
-            color: var(--gray-500);
-        }
-
-        .contact-actions button:hover {
-            color: var(--gray-700);
-        }
-
-        .empty-state {
-            padding: 20px;
-            text-align: center;
-            color: var(--gray-500);
-        }
-
-        .empty-icon {
-            font-size: 40px;
-            margin-bottom: 8px;
-        }
-
-        .settings-item {
-            display: flex;
-            align-items: center;
-            padding: 12px 0;
-            cursor: pointer;
-        }
-
-        .settings-item .material-icons {
-            margin-right: 12px;
-            font-size: 24px;
-        }
-
-        .audio-recording {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 12px;
-            background-color: var(--gray-100);
-            border-radius: var(--border-radius);
-            margin-top: 12px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-
-        .audio-recording:hover {
-            background-color: var(--gray-200);
-        }
-
-        .audio-recording.active {
-            background-color: var(--gray-200);
-        }
-
-        .audio-recording .material-icons {
-            font-size: 24px;
-            color: var(--gray-500);
-        }
-
-        #audio-status {
-            font-size: 14px;
-        }
-
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(0, 0, 0, 0.6);
-            display: flex;
-            align-items: flex-end;
-            justify-content: center;
-            z-index: 1000;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.4s ease-in-out;
-        }
-
-        .modal-overlay.active {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .modal {
-            background-color: var(--white);
-            border-radius: 16px 16px 0 0;
-            width: 100%;
-            transform: translateY(100%);
-            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .modal-overlay.active .modal {
-            transform: translateY(0);
-        }
-
-        .modal-header {
-            padding: 16px;
-            border-bottom: 1px solid var(--gray-200);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .modal-body {
-            padding: 20px 16px;
-        }
-
-        .modal-footer {
-            padding: 16px;
-            border-top: 1px solid var(--gray-200);
-            display: flex;
-            justify-content: flex-end;
-            gap: 12px;
-        }
-
-        #sos-confirm-modal .modal {
-            top: 0;
-            bottom: 0;
-            border-radius: 0;
-            background: var(--white);
-        }
-
-        .success-modal .modal-body {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            padding: 32px 24px;
-        }
-
-        .success-icon {
-            width: 80px;
-            height: 80px;
-            background-color: var(--gray-100);
-            color: var(--black);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 16px;
-        }
-
-        .success-icon .material-icons {
-            font-size: 40px;
-        }
-
-        .warning-icon {
-            width: 80px;
-            height: 80px;
-            background-color: var(--gray-100);
-            color: var(--black);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 16px;
-        }
-
-        .warning-icon .material-icons {
-            font-size: 40px;
-        }
-
-        .toast-container {
-            position: fixed;
-            bottom: calc(80px + 16px);
-            left: 20px;
-            right: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            z-index: 2000;
-        }
-
-        .toast {
-            background-color: var(--white);
-            border-radius: var(--border-radius);
-            padding: 16px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            display: flex;
-            align-items: center;
-            transform: translateY(100%);
-            opacity: 0;
-            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s ease-in-out;
-        }
-
-        .toast.show {
-            transform: translateY(0);
-            opacity: 1;
-        }
-
-        .toast-error {
-            border-left: 4px solid var(--gray-700);
-        }
-
-        .toast-icon {
-            margin-right: 12px;
-            color: var(--black);
-        }
-
-        .toast-content {
-            flex: 1;
-        }
-
-        .toast-title {
-            font-weight: 500;
-            margin-bottom: 2px;
-            color: var(--black);
-        }
-
-        .toast-message {
-            font-size: 14px;
-            color: var(--gray-500);
-        }
-
-        .emergency-notification {
-            position: fixed;
-            top: -100px;
-            left: 20px;
-            right: 20px;
-            background-color: var(--sos);
-            color: var(--white);
-            border-radius: var(--border-radius);
-            padding: 16px;
-            box-shadow: 0 0 10px rgba(211, 47, 47, 0.5);
-            z-index: 3000;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            transition: top 0.4s ease-in-out;
-        }
-
-        .emergency-notification.active {
-            top: 20px;
-        }
-
-        .emergency-notification .notification-icon {
-            margin-right: 12px;
-        }
-
-        .emergency-notification .notification-content {
-            flex: 1;
-        }
-
-        .emergency-notification .notification-title {
-            font-weight: 600;
-            margin-bottom: 4px;
-        }
-
-        .emergency-notification .notification-message {
-            font-size: 14px;
-        }
-
-        .emergency-notification .notification-actions {
-            display: flex;
-            gap: 8px;
-        }
-
-        .emergency-notification .notification-close {
-            background: none;
-            border: none;
-            color: var(--white);
-            cursor: pointer;
-            padding: 8px;
-        }
-
-        .notification-btn {
-            background-color: rgba(255, 255, 255, 0.2);
-            border: none;
-            color: var(--white);
-            padding: 8px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-
-        .notification-btn:hover {
-            background-color: rgba(255, 255, 255, 0.3);
-        }
+        *{margin:0;padding:0;box-sizing:border-box;outline:none;font-family:'Geist Mono',monospace;-webkit-tap-highlight-color:transparent}:root{--primary:#1E3A8A;--sos:#D32F2F;--black:#000000;--white:#FFFFFF;--gray-100:#F5F5F5;--gray-200:#E0E0E0;--gray-300:#CCCCCC;--gray-500:#777777;--gray-700:#333333;--gray-900:#1A1A1A;--border-radius:12px}body{background-color:var(--white);color:var(--black);min-height:100vh;position:relative;overflow:hidden;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom);padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)}.container{padding:20px;max-width:100%}.flex{display:flex}.flex-col{flex-direction:column}.items-center{align-items:center}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.text-center{text-align:center}.text-primary{color:var(--primary)}.text-sos{color:var(--sos)}.text-gray{color:var(--gray-500)}.text-white{color:var(--white)}.bg-primary{background-color:var(--primary)}.bg-sos{background-color:var(--sos)}.rounded{border-radius:var(--border-radius)}.rounded-full{border-radius:50%}.shadow{box-shadow:0 2px 6px rgba(0,0,0,0.1)}.w-full{width:100%}.mr-2{margin-right:8px}.mb-2{margin-bottom:8px}.mb-4{margin-bottom:16px}.mb-6{margin-bottom:24px}.mt-2{margin-top:8px}.mt-4{margin-top:16px}.p-2{padding:8px}.p-4{padding:16px}.pt-6{padding-top:24px}.hidden{display:none !important}.page{position:absolute;top:0;left:0;width:100%;min-height:100vh;padding-bottom:80px;opacity:0;transform:translateX(100%);z-index:1;overflow-y:hidden;transition:transform 0.4s cubic-bezier(0.4,0,0.2,1),opacity 0.2s ease}.page.active{opacity:1;transform:translateX(0);z-index:10}.page.exiting{transform:translateX(-100%);opacity:0}.form-group{margin-bottom:20px}.form-label{display:block;font-size:16px;font-weight:500;margin-bottom:6px;color:var(--black)}.form-input{width:100%;padding:14px 16px;border:1px solid var(--gray-200);border-radius:var(--border-radius);font-size:18px;background-color:var(--white);color:var(--black);transition:border-color 0.3s ease,transform 0.2s ease}.form-input:focus{border-color:var(--gray-700);transform:scale(1.02)}.form-input::placeholder{color:var(--gray-500);font-size:16px}.form-error{color:var(--gray-700);font-size:12px;margin-top:4px;min-height:18px;transition:opacity 0.3s ease}.form-help{color:var(--gray-500);font-size:12px;margin-top:4px}.btn{display:inline-flex;align-items:center;justify-content:center;padding:14px 20px;border-radius:var(--border-radius);font-weight:500;cursor:pointer;border:none;font-size:18px;transition:transform 0.2s ease,opacity 0.3s ease,background-color 0.3s ease;min-width:48px;min-height:48px}.btn:hover{transform:scale(1.05);opacity:0.9}.btn:active{transform:scale(0.95)}.btn-primary{background-color:var(--primary);color:var(--white)}.btn-sos{background-color:var(--sos);color:var(--white)}.btn-outline{background-color:var(--white);border:1px solid var(--gray-200);color:var(--black)}.btn-icon{background:none;border:none;color:var(--black);cursor:pointer;padding:12px;display:flex;align-items:center;justify-content:center;border-radius:50%;transition:background-color 0.3s ease,transform 0.2s ease;min-width:48px;min-height:48px}.btn-icon:hover{background-color:var(--gray-100);transform:scale(1.1)}.btn-icon:active{transform:scale(0.9)}.material-icons{font-size:24px;transition:transform 0.2s ease}.auth-container{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:32px 20px;background-color:var(--white)}.auth-logo{text-align:center;margin-bottom:40px;opacity:0;transform:translateY(20px);animation:fadeInUp 0.5s ease forwards}.auth-logo h1{font-size:32px;font-weight:700;color:var(--black);margin-bottom:8px}.auth-logo p{color:var(--gray-500);font-size:16px}.auth-link{color:var(--gray-700);text-decoration:none;font-weight:500;transition:color 0.3s ease}.auth-link:hover{color:var(--black);text-decoration:underline}.bottom-nav{position:fixed;bottom:0;left:0;right:0;height:80px;background-color:var(--white);display:flex;justify-content:space-around;align-items:center;box-shadow:0 -1px 6px rgba(0,0,0,0.1);z-index:100;transition:transform 0.4s cubic-bezier(0.4,0,0.2,1)}.bottom-nav.hidden{transform:translateY(100%)}.bottom-nav-item{display:flex;flex-direction:column;align-items:center;justify-content:center;text-decoration:none;color:var(--gray-500);font-size:10px;padding:8px 0;width:25%;transition:color 0.3s ease,transform 0.2s ease;position:relative}.bottom-nav-item:hover{transform:scale(1.1)}.bottom-nav-item.active{color:var(--black)}.bottom-nav-item .material-icons{font-size:28px;margin-bottom:4px}.sos-nav-item{width:50%;margin-top:-32px}.sos-nav-button{background:linear-gradient(135deg,var(--sos),#B71C1C);color:var(--white);width:72px;height:72px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:4px;box-shadow:0 6px 16px rgba(211,47,47,0.4);transition:transform 0.3s ease,box-shadow 0.3s ease}.sos-nav-button:hover{transform:scale(1.15);box-shadow:0 8px 20px rgba(211,47,47,0.6);opacity:0.9}.sos-nav-button:active{transform:scale(0.95)}.sos-nav-button .material-icons{font-size:28px;margin-bottom:0}.map-container{position:fixed;top:0;left:0;right:0;bottom:80px;width:100%;height:calc(100vh - 80px);overflow:hidden;z-index:0}#map{position:absolute;top:0;bottom:0;left:0;right:0;z-index:1;touch-action:none}.map-search-container{position:absolute;top:20px;left:20px;right:20px;background:var(--white);border-radius:12px;padding:8px;box-shadow:0 2px 8px rgba(0,0,0,0.1);z-index:100;transition:transform 0.4s cubic-bezier(0.4,0,0.2,1);opacity:0;transform:translateY(-20px);animation:slideInDown 0.5s ease forwards}.map-search{display:flex;align-items:center;padding:4px}.search-icon{display:flex;align-items:center;justify-content:center;width:48px;height:48px;color:var(--gray-500);transition:transform 0.2s ease}.search-icon:hover{transform:scale(1.1)}.map-search input{flex:1;padding:12px;border:none;font-size:18px;background-color:transparent;color:var(--black);transition:transform 0.2s ease}.map-search input:focus{transform:scale(1.02)}.map-search input::placeholder{color:var(--gray-500)}.location-btn{width:48px;height:48px;background:none;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--gray-500);transition:transform 0.2s ease}.location-btn:hover{transform:scale(1.1)}.location-btn:active{transform:scale(0.9)}.route-search-btn{width:100%;height:48px;background-color:var(--primary);color:var(--white);border:none;border-radius:var(--border-radius);cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:500;transition:transform 0.2s ease,background-color 0.3s ease}.route-search-btn:hover{transform:scale(1.05);background-color:#2b4ca8}.route-search-btn:active{transform:scale(0.95)}.route-search-btn .material-icons{margin-right:8px}.route-btn-text{font-size:18px}.location-info{position:fixed;left:0;right:0;bottom:80px;background:var(--white);border-radius:16px 16px 0 0;padding:16px 16px 60px 16px;box-shadow:0 -2px 8px rgba(0,0,0,0.1);z-index:150;height:auto;max-height:50vh;overflow-y:auto;-ms-overflow-style:none;scrollbar-width:thin;scrollbar-color:var(--gray-700) var(--gray-200);transition:transform 0.4s cubic-bezier(0.4,0,0.2,1);transform:translateY(100%);display:none}.location-info::-webkit-scrollbar{width:8px}.location-info::-webkit-scrollbar-track{background:var(--gray-200);border-radius:4px}.location-info::-webkit-scrollbar-thumb{background:var(--gray-700);border-radius:4px}.location-info::-webkit-scrollbar-thumb:hover{background:#555}.location-info.visible{transform:translateY(0);display:block;animation:slideUp 0.4s ease forwards}.location-info h3{font-size:20px;font-weight:600;margin-bottom:8px}.location-info p{font-size:14px;color:var(--gray-500);margin-bottom:12px}.location-actions{display:flex;gap:12px;justify-content:space-between}.route-options{margin:12px 0}.route-mode-selector{display:flex;justify-content:center;background-color:var(--gray-100);border-radius:var(--border-radius);padding:4px;width:fit-content;margin:0 auto 12px;border:1px solid var(--gray-200)}.route-mode-btn{border:none;background:none;border-radius:6px;width:48px;height:48px;display:flex;align-items:center;justify-content:center;margin:0 4px;cursor:pointer;color:var(--gray-500);transition:background-color 0.3s ease,transform 0.2s ease}.route-mode-btn:hover{transform:scale(1.1)}.route-mode-btn.active{background-color:var(--white);box-shadow:0 1px 3px rgba(0,0,0,0.1);color:var(--black)}.route-mode-btn:active{transform:scale(0.9)}.route-mode-btn .material-icons{font-size:24px}.alternative-routes{margin-top:12px;opacity:0;transform:translateY(20px);animation:fadeInUp 0.5s ease forwards}.route-option{display:flex;align-items:center;padding:10px;border:1px solid var(--gray-200);border-radius:var(--border-radius);margin-bottom:8px;cursor:pointer;background-color:var(--white);transition:transform 0.3s ease,border-color 0.3s ease,background-color 0.3s ease}.route-option:hover{transform:translateX(5px);background-color:var(--gray-100)}.route-option.active{border-color:var(--gray-700);background-color:var(--gray-100)}.route-option-icon{background-color:var(--white);width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-right:12px;color:var(--black);transition:transform 0.2s ease}.route-option:hover .route-option-icon{transform:rotate(360deg)}.route-option-info{flex:1}.route-option-title{font-weight:500;margin-bottom:2px;color:var(--black)}.route-option-details{font-size:12px;color:var(--gray-500)}.route-details{position:fixed;top:0;right:-350px;width:320px;height:calc(100vh - 80px);background-color:var(--white);z-index:200;box-shadow:-2px 0 8px rgba(0,0,0,0.1);padding:20px;display:flex;flex-direction:column;border-left:1px solid var(--gray-200);overflow-y:auto;transition:right 0.4s cubic-bezier(0.4,0,0.2,1)}.route-details.visible{right:0}.route-details-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid var(--gray-200)}.route-details-content{flex:1;overflow-y:auto}.step-item{padding:12px;border-bottom:1px solid var(--gray-200);display:flex;transition:background-color 0.3s ease,transform 0.3s ease;opacity:0;transform:translateX(20px);animation:slideInLeft 0.3s ease forwards;animation-delay:calc(var(--step-index) * 0.1s)}.step-item:hover{background-color:var(--gray-100);transform:translateX(5px)}.step-item:last-child{border-bottom:none}.step-number{width:24px;height:24px;border-radius:50%;background-color:var(--gray-700);color:var(--white);display:flex;align-items:center;justify-content:center;font-size:12px;margin-right:12px;flex-shrink:0;transition:transform 0.2s ease}.step-item:hover .step-number{transform:scale(1.1)}.step-content{flex:1;color:var(--black)}.route-progress{background-color:var(--gray-100);border-radius:var(--border-radius);padding:12px;margin-bottom:12px;border:1px solid var(--gray-200);opacity:0;transform:translateY(20px);animation:fadeInUp 0.5s ease forwards}.progress-bar-container{height:6px;background-color:var(--gray-200);border-radius:3px;margin:8px 0;overflow:hidden}.progress-bar{height:100%;background-color:var(--gray-700);width:0%;transition:width 0.5s ease-in-out}.eta-info{display:flex;justify-content:space-between;font-size:12px;color:var(--gray-500)}.profile-container{padding:20px;height:calc(100vh - 80px);overflow-y:auto;background-color:var(--gray-100)}.profile-header{background-color:var(--white);padding:20px;border-radius:var(--border-radius);margin-bottom:20px;box-shadow:0 2px 6px rgba(0,0,0,0.05);display:flex;align-items:center;opacity:0;transform:translateY(20px);animation:fadeInUp 0.5s ease forwards}.profile-avatar{width:60px;height:60px;background-color:var(--primary);color:var(--white);border-radius:50%;display:flex;align-items:center;justify-content:center;margin-right:16px;font-size:28px;transition:transform 0.3s ease}.profile-header:hover .profile-avatar{transform:rotate(360deg)}.profile-info{flex:1}.profile-name{font-size:22px;font-weight:600;color:var(--black);margin-bottom:4px}.profile-email{font-size:14px;color:var(--gray-500)}.profile-section{background-color:var(--white);border-radius:var(--border-radius);padding:20px;margin-bottom:20px;box-shadow:0 2px 6px rgba(0,0,0,0.05);opacity:0;transform:translateY(20px);animation:fadeInUp 0.5s ease forwards;animation-delay:calc(var(--section-index) * 0.1s)}.section-title{font-size:18px;font-weight:600;color:var(--black);margin-bottom:12px}.guardian-key{background-color:var(--gray-100);padding:12px;border-radius:8px;font-size:16px;font-weight:500;text-align:center;color:var(--black);border:1px dashed var(--gray-200);word-break:break-all;transition:background-color 0.3s ease}.guardian-key:hover{background-color:var(--gray-200)}.contacts-list{max-height:250px;overflow-y:auto}.contact-item{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--gray-200);transition:transform 0.3s ease,background-color 0.3s ease;opacity:0;animation:fadeIn 0.3s ease forwards;animation-delay:calc(var(--contact-index) * 0.1s)}.contact-item:hover{transform:translateX(5px);background-color:var(--gray-100)}.contact-item:last-child{border-bottom:none}.contact-info{display:flex;align-items:center;flex:1}.contact-avatar{width:40px;height:40px;background-color:var(--gray-200);border-radius:50%;display:flex;align-items:center;justify-content:center;margin-right:12px;color:var(--black);transition:transform 0.2s ease}.contact-item:hover .contact-avatar{transform:scale(1.1)}.contact-details h4{font-size:16px;font-weight:500;color:var(--black);margin-bottom:2px}.contact-relation{font-size:12px;color:var(--gray-500)}.contact-actions button{color:var(--gray-500)}.contact-actions button:hover{color:var(--gray-700)}.empty-state{padding:20px;text-align:center;color:var(--gray-500);opacity:0;animation:fadeIn 0.5s ease forwards}.empty-icon{font-size:40px;margin-bottom:8px;transition:transform 0.3s ease}.empty-state:hover .empty-icon{transform:scale(1.2)}.settings-item{display:flex;align-items:center;padding:12px 0;cursor:pointer;transition:transform 0.3s ease,background-color 0.3s ease}.settings-item:hover{transform:translateX(5px);background-color:var(--gray-100)}.settings-item .material-icons{margin-right:12px;font-size:24px}.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background-color:rgba(0,0,0,0.6);display:flex;align-items:flex-end;justify-content:center;z-index:1000;opacity:0;visibility:hidden;transition:opacity 0.4s ease-in-out}.modal-overlay.active{opacity:1;visibility:visible}.modal{background-color:var(--white);border-radius:16px 16px 0 0;width:100%;transform:translateY(100%);transition:transform 0.4s cubic-bezier(0.4,0,0.2,1)}.modal-overlay.active .modal{transform:translateY(0);animation:slideUp 0.4s ease forwards}.modal-header{padding:16px;border-bottom:1px solid var(--gray-200);display:flex;align-items:center;justify-content:space-between}.modal-body{padding:20px 16px}.modal-footer{padding:16px;border-top:1px solid var(--gray-200);display:flex;justify-content:flex-end;gap:12px}#sos-confirm-modal .modal{top:0;bottom:0;border-radius:0;background:var(--white)}.success-modal .modal-body{display:flex;flex-direction:column;align-items:center;text-align:center;padding:32px 24px}.success-icon{width:80px;height:80px;background-color:var(--gray-100);color:var(--black);border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:16px;transition:transform 0.3s ease}.success-icon:hover{transform:scale(1.1)}.success-icon .material-icons{font-size:40px}.warning-icon{width:80px;height:80px;background-color:var(--gray-100);color:var(--black);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;transition:transform 0.3s ease;animation:pulse 1.5s infinite}.warning-icon .material-icons{font-size:40px}.toast-container{position:fixed;bottom:calc(80px + 16px);left:20px;right:20px;display:flex;flex-direction:column;gap:8px;z-index:2000}.toast{background-color:var(--white);border-radius:var(--border-radius);padding:16px;box-shadow:0 4px 12px rgba(0,0,0,0.1);display:flex;align-items:center;transform:translateY(100%);opacity:0;transition:transform 0.4s cubic-bezier(0.4,0,0.2,1),opacity 0.4s ease-in-out}.toast.show{transform:translateY(0);opacity:1;animation:slideInUp 0.4s ease forwards}.toast-error{border-left:4px solid var(--gray-700)}.toast-icon{margin-right:12px;color:var(--black);transition:transform 0.3s ease}.toast.show .toast-icon{transform:rotate(360deg)}.toast-content{flex:1}.toast-title{font-weight:500;margin-bottom:2px;color:var(--black)}.toast-message{font-size:14px;color:var(--gray-500)}.emergency-notification{position:fixed;top:-100px;left:20px;right:20px;background-color:var(--sos);color:var(--white);border-radius:var(--border-radius);padding:16px;box-shadow:0 0 10px rgba(211,47,47,0.5);z-index:3000;display:flex;align-items:center;justify-content:space-between;transition:top 0.4s ease-in-out}.emergency-notification.active{top:20px;animation:slideDown 0.4s ease forwards}.emergency-notification .notification-icon{margin-right:12px;animation:pulse 1.5s infinite}.emergency-notification .notification-content{flex:1}.emergency-notification .notification-title{font-weight:600;margin-bottom:4px}.emergency-notification .notification-message{font-size:14px}.emergency-notification .notification-actions{display:flex;gap:8px}.emergency-notification .notification-close{background:none;border:none;color:var(--white);cursor:pointer;padding:8px;transition:transform 0.2s ease}.emergency-notification .notification-close:hover{transform:scale(1.1)}.notification-btn{background-color:rgba(255,255,255,0.2);border:none;color:var(--white);padding:8px 12px;border-radius:4px;cursor:pointer;transition:background-color 0.3s ease,transform 0.2s ease}.notification-btn:hover{background-color:rgba(255,255,255,0.3);transform:scale(1.05)}@keyframes fadeInUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}@keyframes fadeIn{from{opacity:0}to{opacity:1}}@keyframes slideInDown{from{transform:translateY(-20px);opacity:0}to{transform:translateY(0);opacity:1}}@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}@keyframes slideInLeft{from{transform:translateX(20px);opacity:0}to{transform:translateX(0);opacity:1}}@keyframes slideDown{from{top:-100px}to{top:20px}}@keyframes pulse{0%{transform:scale(1)}50%{transform:scale(1.1)}100%{transform:scale(1)}}
     </style>
 </head>
 <body>
@@ -1222,12 +75,12 @@
             <div class="map-search-container">
                 <div class="map-search">
                     <div class="search-icon"><span class="material-icons">place</span></div>
-                    <input type="text" id="origin-search-input" placeholder="Enter starting point..." autocomplete="off">
+                    <input type="search" id="origin-search-input" placeholder="Enter starting point..." autocomplete="off">
                     <button id="current-location-origin-btn" class="location-btn" title="Use current location"><span class="material-icons">my_location</span></button>
                 </div>
                 <div class="map-search">
                     <div class="search-icon"><span class="material-icons">flag</span></div>
-                    <input type="text" id="destination-search-input" placeholder="Enter destination..." autocomplete="off">
+                    <input type="search" id="destination-search-input" placeholder="Enter destination" autocomplete="street-address">
                     <button id="current-location-dest-btn" class="location-btn" title="Use current location"><span class="material-icons">my_location</span></button>
                 </div>
                 <div class="route-search-container">
@@ -1278,12 +131,12 @@
                     <p id="profile-email" class="profile-email">loading@example.com</p>
                 </div>
             </div>
-            <div class="profile-section">
+            <div class="profile-section" style="--section-index: 1;">
                 <div class="section-title">Your Guardian Key</div>
                 <div class="guardian-key" id="guardian-key">Loading...</div>
                 <button class="btn btn-outline mt-2 w-full" id="copy-key-btn"><span class="material-icons mr-2">content_copy</span>Copy Key</button>
             </div>
-            <div class="profile-section">
+            <div class="profile-section" style="--section-index: 2;">
                 <div class="flex justify-between items-center mb-2">
                     <div class="section-title">Emergency Contacts</div>
                     <button id="add-contact-btn" class="btn btn-primary"><span class="material-icons mr-2">add</span>Add</button>
@@ -1295,19 +148,12 @@
                     </div>
                 </div>
             </div>
-            <div class="profile-section">
-                <div class="section-title">Custom SOS Audio Trigger</div>
-                <div class="settings-item audio-recording" id="record-audio-btn">
-                    <span class="material-icons">mic</span>
-                    <span id="record-audio-text">Record Custom Trigger</span>
-                </div>
-                <div id="audio-status" class="mt-2 text-gray">No custom trigger set</div>
-                <button class="btn btn-outline mt-2 w-full" id="delete-audio-btn" style="display: none;">
-                    <span class="material-icons mr-2">delete</span>Delete Trigger
-                </button>
-            </div>
-            <div class="profile-section">
+            <div class="profile-section" style="--section-index: 3;">
                 <div class="section-title">Settings</div>
+                <div class="settings-item" id="custom-sos-phrase-btn">
+                    <span class="material-icons">mic</span>
+                    <span>Custom SOS Phrase</span>
+                </div>
                 <div class="settings-item" id="logout-btn">
                     <span class="material-icons">logout</span>
                     <span>Logout</span>
@@ -1391,6 +237,28 @@
             </div>
         </div>
     </div>
+    <div id="custom-sos-modal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Set Custom SOS Phrase</h3>
+                <button class="modal-close" id="close-custom-sos"><span class="material-icons">close</span></button>
+            </div>
+            <form id="custom-sos-form" autocomplete="off">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label" for="custom-sos-phrase">SOS Trigger Phrase</label>
+                        <input type="text" id="custom-sos-phrase" class="form-input" placeholder="Enter short phrase (max 5 words)" required autocomplete="off">
+                        <div class="form-error" id="custom-sos-error"></div>
+                        <p class="form-help">Say this phrase to trigger SOS (e.g., "Help me now")</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" id="cancel-custom-sos">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="save-custom-sos">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
     <div class="toast-container" id="toast-container"></div>
     <div id="emergency-notification" class="emergency-notification">
         <div class="notification-icon"><span class="material-icons">warning</span></div>
@@ -1413,12 +281,9 @@
     appId: "1:249797346737:web:29edab4d045345742d6990",
     measurementId: "G-X35KJKEPEB"
 };
-
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
-const storage = firebase.storage();
-
 const pages = document.querySelectorAll('.page');
 const bottomNav = document.getElementById('bottom-nav');
 const navItems = document.querySelectorAll('.bottom-nav-item');
@@ -1483,10 +348,12 @@ const alternativeRoutes = document.getElementById('alternative-routes');
 const routeAlternativesContainer = document.getElementById('route-alternatives-container');
 const drivingModeBtn = document.getElementById('driving-mode');
 const walkingModeBtn = document.getElementById('walking-mode');
-const recordAudioBtn = document.getElementById('record-audio-btn');
-const recordAudioText = document.getElementById('record-audio-text');
-const audioStatus = document.getElementById('audio-status');
-const deleteAudioBtn = document.getElementById('delete-audio-btn');
+const customSosBtn = document.getElementById('custom-sos-phrase-btn');
+const customSosModal = document.getElementById('custom-sos-modal');
+const closeCustomSosBtn = document.getElementById('close-custom-sos');
+const cancelCustomSosBtn = document.getElementById('cancel-custom-sos');
+const customSosForm = document.getElementById('custom-sos-form');
+const customSosInput = document.getElementById('custom-sos-phrase');
 
 let currentUser = null;
 let map = null;
@@ -1506,15 +373,10 @@ let sosInterval = null;
 let activeSosId = null;
 let lastSosLocation = null;
 let firstSosReceived = {};
-let mediaRecorder = null;
-let audioChunks = [];
-let customAudioUrl = null;
-let audioContext = null;
-let analyser = null;
-let customAudioBuffer = null;
+const sosPassword = "stop123";
+let customSosPhrase = 'start sos';
 let recognition = null;
 let isListening = false;
-const sosPassword = "stop123";
 
 function sanitizeInput(input) {
     return input.replace(/[<>&"']/g, '');
@@ -1578,13 +440,7 @@ function showPage(pageId) {
 function showToast(type, title, message, duration = 3000) {
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
-    toast.innerHTML = `
-        <div class="toast-icon"><span class="material-icons">error</span></div>
-        <div class="toast-content">
-            <div class="toast-title">${title}</div>
-            <div class="toast-message">${message}</div>
-        </div>
-    `;
+    toast.innerHTML = `<div class="toast-icon"><span class="material-icons">error</span></div><div class="toast-content"><div class="toast-title">${title}</div><div class="toast-message">${message}</div></div>`;
     const toastContainer = document.getElementById('toast-container');
     toastContainer.appendChild(toast);
     toast.offsetHeight;
@@ -1627,6 +483,7 @@ auth.onAuthStateChanged(user => {
     if (user) {
         showPage('home');
         loadUserProfile();
+        loadCustomSosPhrase();
         listenForSosAlerts();
         initSpeechRecognition();
     } else {
@@ -1714,15 +571,7 @@ function loadUserProfile() {
                 profileName.textContent = data.fullName || 'User';
                 profileEmail.textContent = data.email;
                 guardianKeyDisplay.textContent = data.guardianKey;
-                if (data.customSosAudio) {
-                    customAudioUrl = data.customSosAudio;
-                    audioStatus.textContent = 'Custom trigger set';
-                    deleteAudioBtn.style.display = 'block';
-                    loadCustomAudioForRecognition();
-                } else {
-                    audioStatus.textContent = 'No custom trigger set';
-                    deleteAudioBtn.style.display = 'none';
-                }
+                customSosPhrase = data.customSosPhrase || 'start sos';
                 loadEmergencyContacts();
             }
         })
@@ -1743,21 +592,11 @@ function loadEmergencyContacts() {
                 emptyContacts.classList.remove('hidden');
             } else {
                 emptyContacts.classList.add('hidden');
-                querySnapshot.forEach(doc => {
+                querySnapshot.forEach((doc, index) => {
                     const contactItem = document.createElement('div');
                     contactItem.className = 'contact-item';
-                    contactItem.innerHTML = `
-                        <div class="contact-info">
-                            <div class="contact-avatar"><span class="material-icons">person</span></div>
-                            <div class="contact-details">
-                                <h4>${doc.data().name || 'Unknown'}</h4>
-                                <p class="contact-relation">${doc.data().relation}</p>
-                            </div>
-                        </div>
-                        <div class="contact-actions">
-                            <button class="btn-icon" data-id="${doc.id}"><span class="material-icons">delete</span></button>
-                        </div>
-                    `;
+                    contactItem.style.setProperty('--contact-index', index);
+                    contactItem.innerHTML = `<div class="contact-info"><div class="contact-avatar"><span class="material-icons">person</span></div><div class="contact-details"><h4>${doc.data().name || 'Unknown'}</h4><p class="contact-relation">${doc.data().relation}</p></div></div><div class="contact-actions"><button class="btn-icon" data-id="${doc.id}"><span class="material-icons">delete</span></button></div>`;
                     contactItem.querySelector('.btn-icon').addEventListener('click', () => deleteContact(doc.id));
                     fragment.appendChild(contactItem);
                 });
@@ -1774,9 +613,7 @@ function deleteContact(contactId) {
 }
 
 addContactBtn.addEventListener('click', () => showModal(addContactModal));
-
 closeAddContactBtn.addEventListener('click', () => hideModal(addContactModal));
-
 cancelAddContactBtn.addEventListener('click', () => hideModal(addContactModal));
 
 addContactForm.addEventListener('submit', e => {
@@ -1802,420 +639,132 @@ addContactForm.addEventListener('submit', e => {
         .catch(err => showToast('error', 'Add Contact Failed', err.message));
 });
 
-recordAudioBtn.addEventListener('click', async () => {
-    if (mediaRecorder && mediaRecorder.state === 'recording') {
-        mediaRecorder.stop();
-        recordAudioText.textContent = 'Record Custom Trigger';
-        recordAudioBtn.classList.remove('active');
-    } else {
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            mediaRecorder = new MediaRecorder(stream);
-            audioChunks = [];
-            mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
-            mediaRecorder.onstop = saveCustomAudio;
-            mediaRecorder.start();
-            recordAudioText.textContent = 'Recording... (Click to stop)';
-            recordAudioBtn.classList.add('active');
-            setTimeout(() => {
-                if (mediaRecorder && mediaRecorder.state === 'recording') {
-                    mediaRecorder.stop();
-                    recordAudioText.textContent = 'Record Custom Trigger';
-                    recordAudioBtn.classList.remove('active');
-                }
-            }, 5000);
-        } catch (err) {
-            showToast('error', 'Recording Failed', 'Please allow microphone access');
-        }
-    }
-});
-
-async function saveCustomAudio() {
-    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-    const storageRef = storage.ref().child(`sos-audio/${currentUser.uid}.webm`);
-    try {
-        const snapshot = await storageRef.put(audioBlob);
-        const url = await snapshot.ref.getDownloadURL();
-        await db.collection('users').doc(currentUser.uid).update({ customSosAudio: url });
-        customAudioUrl = url;
-        audioStatus.textContent = 'Custom trigger set';
-        deleteAudioBtn.style.display = 'block';
-        loadCustomAudioForRecognition();
-        showToast('success', 'Trigger Saved', 'Custom SOS audio trigger saved successfully');
-    } catch (err) {
-        showToast('error', 'Save Failed', err.message);
-    }
-    if (mediaRecorder && mediaRecorder.stream) {
-        mediaRecorder.stream.getTracks().forEach(track => track.stop());
-    }
-}
-
-deleteAudioBtn.addEventListener('click', async () => {
-    try {
-        await storage.ref().child(`sos-audio/${currentUser.uid}.webm`).delete();
-        await db.collection('users').doc(currentUser.uid).update({
-            customSosAudio: firebase.firestore.FieldValue.delete()
-        });
-        customAudioUrl = null;
-        customAudioBuffer = null;
-        audioStatus.textContent = 'No custom trigger set';
-        deleteAudioBtn.style.display = 'none';
-        showToast('success', 'Trigger Deleted', 'Custom SOS audio trigger removed');
-    } catch (err) {
-        showToast('error', 'Delete Failed', err.message);
-    }
-});
-
-async function loadCustomAudioForRecognition() {
-    if (!customAudioUrl) return;
-    try {
-        const response = await fetch(customAudioUrl);
-        const arrayBuffer = await response.arrayBuffer();
-        audioContext = audioContext || new (window.AudioContext || window.webkitAudioContext)();
-        customAudioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-    } catch (err) {
-        showToast('error', 'Audio Load Failed', 'Could not load custom SOS audio');
-    }
-}
-
-function initSpeechRecognition() {
-    if (!('webkitSpeechRecognition' in window)) return;
-    recognition = new webkitSpeechRecognition();
-    recognition.continuous = true;
-    recognition.interimResults = false;
-    recognition.onresult = event => {
-        const transcript = event.results[event.results.length - 1][0].transcript.trim().toLowerCase();
-        if (!customAudioUrl) {
-            if (transcript === 'start sos') triggerSos();
-        }
-    };
-    recognition.onstart = () => isListening = true;
-    recognition.onend = () => {
-        if (currentUser && !isListening) recognition.start();
-    };
-    recognition.onerror = err => {
-        if (err.error === 'no-speech' || err.error === 'aborted') return;
-        showToast('error', 'Speech Recognition Error', err.error);
-        isListening = false;
-        setTimeout(() => recognition.start(), 1000);
-    };
-    recognition.start();
-    navigator.mediaDevices.getUserMedia({ audio: true })
-        .then(stream => {
-            audioContext = audioContext || new (window.AudioContext || window.webkitAudioContext)();
-            const source = audioContext.createMediaStreamSource(stream);
-            analyser = audioContext.createAnalyser();
-            analyser.fftSize = 2048;
-            source.connect(analyser);
-            checkAudioForCustomTrigger();
-        })
-        .catch(err => showToast('error', 'Microphone Access Denied', 'Please allow microphone access for SOS trigger'));
-}
-
-function checkAudioForCustomTrigger() {
-    if (!customAudioBuffer || !analyser) return;
-    const bufferLength = analyser.frequencyBinCount;
-    const dataArray = new Float32Array(bufferLength);
-    const customData = customAudioBuffer.getChannelData(0);
-    const checkInterval = setInterval(() => {
-        if (!isListening || !currentUser) {
-            clearInterval(checkInterval);
-            return;
-        }
-        analyser.getFloatTimeDomainData(dataArray);
-        const correlation = calculateCorrelation(dataArray, customData.slice(0, bufferLength));
-        if (correlation > 0.85) triggerSos();
-    }, 100);
-}
-
-function calculateCorrelation(array1, array2) {
-    const len = Math.min(array1.length, array2.length);
-    let sumXY = 0, sumX = 0, sumY = 0, sumX2 = 0, sumY2 = 0;
-    for (let i = 0; i < len; i++) {
-        const x = array1[i];
-        const y = array2[i];
-        sumXY += x * y;
-        sumX += x;
-        sumY += y;
-        sumX2 += x * x;
-        sumY2 += y * y;
-    }
-    const numerator = sumXY - (sumX * sumY) / len;
-    const denominator = Math.sqrt((sumX2 - (sumX * sumX) / len) * (sumY2 - (sumY * sumY) / len));
-    return denominator === 0 ? 0 : numerator / denominator;
-}
-
-function triggerSos() {
-    if (activeSosId) {
-        showModal(sosEndModal);
-        return;
-    }
-    showModal(sosConfirmModal);
-    sosCountdown = 10;
-    document.getElementById('sos-timer').textContent = `Time remaining: ${sosCountdown}s`;
-    sosInterval = setInterval(() => {
-        sosCountdown--;
-        document.getElementById('sos-timer').textContent = `Time remaining: ${sosCountdown}s`;
-        if (sosCountdown <= 0) {
-            clearInterval(sosInterval);
-            sendSosAlert();
-        }
-    }, 1000);
-}
-
-sosButton.addEventListener('click', triggerSos);
-
-closeSosConfirmBtn.addEventListener('click', () => hideModal(sosConfirmModal));
-
-cancelSosBtn.addEventListener('click', () => {
-    const password = document.getElementById('sos-password').value;
-    if (password === sosPassword) {
-        clearInterval(sosInterval);
-        hideModal(sosConfirmModal);
-    } else {
-        showToast('error', 'Invalid Password', 'Incorrect password to cancel SOS');
-    }
-});
-
-confirmSosBtn.addEventListener('click', () => {
-    clearInterval(sosInterval);
-    sendSosAlert();
-});
-
-closeSosEndBtn.addEventListener('click', () => hideModal(sosEndModal));
-
-cancelEndSosBtn.addEventListener('click', () => hideModal(sosEndModal));
-
-confirmEndSosBtn.addEventListener('click', () => {
-    const password = document.getElementById('sos-end-password').value;
-    if (password === sosPassword) {
-        endSosAlert();
-        hideModal(sosEndModal);
-    } else {
-        showToast('error', 'Invalid Password', 'Incorrect password to end SOS');
-    }
-});
-
-async function sendSosAlert() {
-    if (!currentLocation) {
-        showToast('error', 'SOS Failed', 'Location not available');
-        return;
-    }
-    const sosData = {
-        userId: currentUser.uid,
-        location: { lat: currentLocation.lat, lng: currentLocation.lng },
-        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-        status: 'active'
-    };
-    try {
-        const docRef = await db.collection('sosAlerts').add(sosData);
-        activeSosId = docRef.id;
-        sosIcon.textContent = 'sos';
-        hideModal(sosConfirmModal);
-        notifyEmergencyContacts(sosData);
-    } catch (err) {
-        showToast('error', 'SOS Failed', err.message);
-    }
-}
-
-function endSosAlert() {
-    if (!activeSosId) return;
-    db.collection('sosAlerts').doc(activeSosId).update({ status: 'resolved' })
-        .then(() => {
-            activeSosId = null;
-            sosIcon.textContent = 'emergency';
-            showToast('success', 'SOS Ended', 'Emergency alert has been resolved');
-        })
-        .catch(err => showToast('error', 'End SOS Failed', err.message));
-}
-
-function notifyEmergencyContacts(sosData) {
-    db.collection('users').doc(currentUser.uid).collection('emergencyContacts').get()
-        .then(querySnapshot => {
-            querySnapshot.forEach(doc => {
-                const contact = doc.data();
-                db.collection('users').where('email', '==', contact.email).get()
-                    .then(contactQuery => {
-                        contactQuery.forEach(contactDoc => {
-                            db.collection('users').doc(contactDoc.id).collection('notifications').add({
-                                type: 'sos',
-                                message: `${currentUser.email} has triggered an SOS alert`,
-                                location: sosData.location,
-                                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                                read: false
-                            });
-                        });
-                    });
-            });
-        });
-}
-
-function listenForSosAlerts() {
-    db.collection('users').doc(currentUser.uid).collection('emergencyContacts').get()
-        .then(querySnapshot => {
-            const guardianKeys = querySnapshot.docs.map(doc => doc.data().guardianKey);
-            if (guardianKeys.length === 0) return;
-            db.collection('users').where('guardianKey', 'in', guardianKeys).get()
-                .then(userQuery => {
-                    const userIds = userQuery.docs.map(doc => doc.id);
-                    db.collection('sosAlerts')
-                        .where('userId', 'in', userIds)
-                        .where('status', '==', 'active')
-                        .onSnapshot(snapshot => {
-                            snapshot.docChanges().forEach(change => {
-                                if (change.type === 'added' && !firstSosReceived[change.doc.id]) {
-                                    const sosData = change.doc.data();
-                                    db.collection('users').doc(sosData.userId).get()
-                                        .then(userDoc => {
-                                            const userData = userDoc.data();
-                                            const message = `${userData.fullName || 'A contact'} has triggered an SOS alert!`;
-                                            showEmergencyNotification(message, sosData.location);
-                                            firstSosReceived[change.doc.id] = true;
-                                        });
-                                }
-                            });
-                        });
-                });
-        });
-}
-
-navigateToBtn.addEventListener('click', () => {
-    if (lastSosLocation && map) {
-        map.setCenter(lastSosLocation);
-        if (destinationMarker) destinationMarker.setMap(null);
-        destinationMarker = new google.maps.Marker({
-            position: lastSosLocation,
-            map: map,
-            icon: { url: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png' }
-        });
-        emergencyNotification.classList.remove('active');
-        showPage('home');
-    }
-});
-
-closeEmergencyNotificationBtn.addEventListener('click', () => {
-    emergencyNotification.classList.remove('active');
-});
-
 function initMap() {
+    const mapStyle = [
+        {"featureType": "all", "elementType": "geometry.fill", "stylers": [{"weight": "2.00"}]},
+        {"featureType": "all", "elementType": "geometry.stroke", "stylers": [{"color": "#f0f0f0"}]},
+        {"featureType": "all", "elementType": "labels.text", "stylers": [{"visibility": "on"}]},
+        {"featureType": "landscape", "elementType": "all", "stylers": [{"color": "#f9f9f9"}]},
+        {"featureType": "landscape", "elementType": "geometry.fill", "stylers": [{"color": "#ffffff"}]},
+        {"featureType": "landscape.man_made", "elementType": "geometry.fill", "stylers": [{"color": "#f5f5f5"}]},
+        {"featureType": "poi", "elementType": "all", "stylers": [{"visibility": "off"}]},
+        {"featureType": "road", "elementType": "all", "stylers": [{"saturation": -100}, {"lightness": 45}]},
+        {"featureType": "road", "elementType": "geometry.fill", "stylers": [{"color": "#eeeeee"}]},
+        {"featureType": "road", "elementType": "labels.text.fill", "stylers": [{"color": "#7b7b7b"}]},
+        {"featureType": "road", "elementType": "labels.text.stroke", "stylers": [{"color": "#ffffff"}]},
+        {"featureType": "road.highway", "elementType": "all", "stylers": [{"visibility": "simplified"}]},
+        {"featureType": "road.arterial", "elementType": "labels.icon", "stylers": [{"visibility": "off"}]},
+        {"featureType": "transit", "elementType": "all", "stylers": [{"visibility": "off"}]},
+        {"featureType": "water", "elementType": "all", "stylers": [{"color": "#e9e9e9"}, {"visibility": "on"}]},
+        {"featureType": "water", "elementType": "geometry.fill", "stylers": [{"color": "#e9e9e9"}]}
+    ];
     map = new google.maps.Map(mapElement, {
         zoom: 15,
-        disableDefaultUI: true,
-        gestureHandling: 'greedy'
+        mapTypeControl: false,
+        streetViewControl: false,
+        fullscreenControl: false,
+        gestureHandling: 'greedy',
+        zoomControlOptions: {position: google.maps.ControlPosition.RIGHT_BOTTOM},
+        padding: {bottom: 120, left: 0, top: 0, right: 0},
+        scrollwheel: true,
+        draggable: true,
+        disableDefaultUI: false,
+        styles: mapStyle
     });
     directionsService = new google.maps.DirectionsService();
-    directionsRenderer = new google.maps.DirectionsRenderer({
-        map: map,
-        suppressMarkers: true,
-        polylineOptions: { strokeColor: '#333333', strokeWeight: 5 }
-    });
+    directionsRenderer = new google.maps.DirectionsRenderer({map: map, suppressMarkers: true});
     const originAutocomplete = new google.maps.places.Autocomplete(originSearchInput);
     const destinationAutocomplete = new google.maps.places.Autocomplete(destinationSearchInput);
-    originAutocomplete.addListener('place_changed', () => updateRoute());
-    destinationAutocomplete.addListener('place_changed', () => updateRoute());
-    navigator.geolocation.watchPosition(
-        position => {
-            currentLocation = { lat: position.coords.latitude, lng: position.coords.longitude };
+    originAutocomplete.addListener('place_changed', () => updateMarker('origin', originAutocomplete.getPlace()));
+    destinationAutocomplete.addListener('place_changed', () => updateMarker('destination', destinationAutocomplete.getPlace()));
+    originSearchInput.addEventListener('input', debounce(() => {
+        const place = originAutocomplete.getPlace();
+        if (place) updateMarker('origin', place);
+    }, 300));
+    destinationSearchInput.addEventListener('input', debounce(() => {
+        const place = destinationAutocomplete.getPlace();
+        if (place) updateMarker('destination', place);
+    }, 300));
+    google.maps.event.addListener(map, 'click', () => {
+        if (locationInfo.classList.contains('visible')) locationInfo.classList.remove('visible');
+    });
+    google.maps.event.addListener(map, 'dragstart', () => {
+        if (locationInfo.classList.contains('visible')) locationInfo.classList.remove('visible');
+    });
+    getCurrentLocation();
+}
+
+function getCurrentLocation() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(position => {
+            currentLocation = {lat: position.coords.latitude, lng: position.coords.longitude};
+            if (!map.getCenter()) map.setCenter(currentLocation);
             if (!userMarker) {
                 userMarker = new google.maps.Marker({
                     position: currentLocation,
                     map: map,
-                    icon: { url: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png' }
+                    icon: {
+                        url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="#1E3A8A"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>')
+                    }
                 });
-                map.setCenter(currentLocation);
             } else {
                 userMarker.setPosition(currentLocation);
             }
             updateLocationInfo();
-        },
-        () => showToast('error', 'Location Error', 'Unable to access location'),
-        { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
-    );
+        }, err => showToast('error', 'Location Error', err.message));
+    } else {
+        showToast('error', 'Geolocation Error', 'Geolocation not supported');
+    }
 }
 
-currentLocationOriginBtn.addEventListener('click', () => {
-    if (currentLocation) {
-        originSearchInput.value = 'My Location';
-        updateRoute();
+function updateMarker(type, place) {
+    const position = place.geometry ? place.geometry.location : null;
+    if (!position) return;
+    if (type === 'origin') {
+        if (originMarker) originMarker.setMap(null);
+        originMarker = new google.maps.Marker({
+            position: position,
+            map: map,
+            icon: {url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="#D32F2F"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>')}
+        });
+        map.setCenter(position);
+    } else if (type === 'destination') {
+        if (destinationMarker) destinationMarker.setMap(null);
+        destinationMarker = new google.maps.Marker({
+            position: position,
+            map: map,
+            icon: {url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="#333333"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>')}
+        });
+        map.setCenter(position);
     }
-});
-
-currentLocationDestBtn.addEventListener('click', () => {
-    if (currentLocation) {
-        destinationSearchInput.value = 'My Location';
-        updateRoute();
+    if (originMarker && destinationMarker) {
+        calculateRoute();
     }
-});
-
-routeSearchBtn.addEventListener('click', () => updateRoute());
-
-drivingModeBtn.addEventListener('click', () => {
-    routeMode = 'DRIVING';
-    drivingModeBtn.classList.add('active');
-    walkingModeBtn.classList.remove('active');
-    updateRoute();
-});
-
-walkingModeBtn.addEventListener('click', () => {
-    routeMode = 'WALKING';
-    walkingModeBtn.classList.add('active');
-    drivingModeBtn.classList.remove('active');
-    updateRoute();
-});
-
-function updateRoute() {
-    if (!originSearchInput.value || !destinationSearchInput.value) return;
-    const origin = originSearchInput.value === 'My Location' ? currentLocation : originSearchInput.value;
-    const destination = destinationSearchInput.value === 'My Location' ? currentLocation : destinationSearchInput.value;
-    directionsService.route(
-        {
-            origin: origin,
-            destination: destination,
-            travelMode: routeMode,
-            provideRouteAlternatives: true
-        },
-        (result, status) => {
-            if (status === 'OK') {
-                directionsRenderer.setDirections(result);
-                currentRoute = result.routes[0];
-                alternativeRoutesData = result.routes;
-                selectedRouteIndex = 0;
-                if (originMarker) originMarker.setMap(null);
-                if (destinationMarker) destinationMarker.setMap(null);
-                originMarker = new google.maps.Marker({
-                    position: currentRoute.legs[0].start_location,
-                    map: map,
-                    icon: { url: 'http://maps.google.com/mapfiles/ms/icons/green-dot.png' }
-                });
-                destinationMarker = new google.maps.Marker({
-                    position: currentRoute.legs[0].end_location,
-                    map: map,
-                    icon: { url: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png' }
-                });
-                map.fitBounds(currentRoute.bounds);
-                locationInfo.classList.add('visible');
-                locationName.textContent = currentRoute.legs[0].end_address.split(',')[0];
-                locationAddress.textContent = currentRoute.legs[0].end_address;
-                populateAlternativeRoutes();
-            } else {
-                showToast('error', 'Route Error', 'Unable to find route');
-            }
-        }
-    );
 }
 
-function updateLocationInfo() {
-    if (!currentLocation) return;
-    const geocoder = new google.maps.Geocoder();
-    geocoder.geocode({ location: currentLocation }, (results, status) => {
-        if (status === 'OK' && results[0]) {
-            locationAddress.textContent = results[0].formatted_address;
-            locationName.textContent = results[0].address_components[0].short_name;
+function calculateRoute() {
+    if (!originMarker || !destinationMarker) return;
+    directionsService.route({
+        origin: originMarker.getPosition(),
+        destination: destinationMarker.getPosition(),
+        travelMode: google.maps.TravelMode[routeMode],
+        provideRouteAlternatives: true
+    }, (result, status) => {
+        if (status === google.maps.DirectionsStatus.OK) {
+            directionsRenderer.setDirections(result);
+            currentRoute = result.routes[0];
+            alternativeRoutesData = result.routes;
+            selectedRouteIndex = 0;
+            displayAlternativeRoutes();
+            locationInfo.classList.add('visible');
+            updateRouteDetails();
+        } else {
+            showToast('error', 'Route Error', 'Unable to calculate route');
         }
     });
 }
 
-function populateAlternativeRoutes() {
+function displayAlternativeRoutes() {
     routeAlternativesContainer.innerHTML = '';
     alternativeRoutesData.forEach((route, index) => {
         const routeOption = document.createElement('div');
@@ -2223,92 +772,326 @@ function populateAlternativeRoutes() {
         routeOption.innerHTML = `
             <div class="route-option-icon"><span class="material-icons">${routeMode === 'WALKING' ? 'directions_walk' : 'directions_car'}</span></div>
             <div class="route-option-info">
-                <div class="route-option-title">Route ${index + 1}</div>
+                <div class="route-option-title">Route ${index + 1} - ${route.summary || ''}</div>
                 <div class="route-option-details">${route.legs[0].distance.text} - ${route.legs[0].duration.text}</div>
-            </div>
-        `;
+            </div>`;
         routeOption.addEventListener('click', () => {
             selectedRouteIndex = index;
             directionsRenderer.setRouteIndex(index);
-            currentRoute = alternativeRoutesData[index];
+            updateRouteDetails();
             document.querySelectorAll('.route-option').forEach(opt => opt.classList.remove('active'));
             routeOption.classList.add('active');
-            if (originMarker) originMarker.setPosition(currentRoute.legs[0].start_location);
-            if (destinationMarker) destinationMarker.setPosition(currentRoute.legs[0].end_location);
-            map.fitBounds(currentRoute.bounds);
         });
         routeAlternativesContainer.appendChild(routeOption);
     });
-    alternativeRoutes.style.display = alternativeRoutesData.length > 1 ? 'block' : 'none';
+    alternativeRoutes.style.display = 'block';
 }
 
-shareLocationBtn.addEventListener('click', () => {
+function updateRouteDetails() {
+    routeDetailsContent.innerHTML = '';
+    const steps = currentRoute.legs[0].steps;
+    steps.forEach((step, index) => {
+        const stepItem = document.createElement('div');
+        stepItem.className = 'step-item';
+        stepItem.style.setProperty('--step-index', index);
+        stepItem.innerHTML = `
+            <div class="step-number">${index + 1}</div>
+            <div class="step-content">${step.instructions}</div>`;
+        routeDetailsContent.appendChild(stepItem);
+    });
+}
+
+routeSearchBtn.addEventListener('click', () => calculateRoute());
+
+currentLocationOriginBtn.addEventListener('click', () => {
     if (currentLocation) {
-        const locationUrl = `https://www.google.com/maps?q=${currentLocation.lat},${currentLocation.lng}`;
-        navigator.clipboard.writeText(locationUrl)
-            .then(() => showToast('success', 'Location Copied', 'Location URL copied to clipboard'))
-            .catch(err => showToast('error', 'Copy Failed', err.message));
+        originSearchInput.value = 'Current Location';
+        if (originMarker) originMarker.setMap(null);
+        originMarker = new google.maps.Marker({
+            position: currentLocation,
+            map: map,
+            icon: {url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="#D32F2F"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>')}
+        });
+        if (destinationMarker) calculateRoute();
     }
 });
 
-startRouteBtn.addEventListener('click', () => {
-    if (!currentRoute) return;
-    routeProgress.style.display = 'block';
-    alternativeRoutes.style.display = 'none';
-    startRouteBtn.style.display = 'none';
-    const totalDistance = currentRoute.legs[0].distance.value;
-    const totalDuration = currentRoute.legs[0].duration.value;
-    routeUpdateWatcher = setInterval(() => {
-        if (!currentLocation) return;
-        const remainingDistance = calculateRemainingDistance(currentLocation, currentRoute.legs[0].end_location);
-        const progress = ((totalDistance - remainingDistance) / totalDistance) * 100;
-        routeProgressBar.style.width = `${progress}%`;
-        const elapsedTime = (totalDistance - remainingDistance) / totalDistance * totalDuration;
-        routeCurrentTime.textContent = `Elapsed: ${Math.floor(elapsedTime / 60)}m ${Math.floor(elapsedTime % 60)}s`;
-        const etaTime = totalDuration - elapsedTime;
-        routeEta.textContent = `ETA: ${Math.floor(etaTime / 60)}m ${Math.floor(etaTime % 60)}s`;
-        if (progress >= 99) {
-            clearInterval(routeUpdateWatcher);
-            routeProgress.style.display = 'none';
-            startRouteBtn.style.display = 'inline-flex';
-            showToast('success', 'Destination Reached', 'You have arrived at your destination');
-        }
-    }, 1000);
+currentLocationDestBtn.addEventListener('click', () => {
+    if (currentLocation) {
+        destinationSearchInput.value = 'Current Location';
+        if (destinationMarker) destinationMarker.setMap(null);
+        destinationMarker = new google.maps.Marker({
+            position: currentLocation,
+            map: map,
+            icon: {url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="#333333"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>')}
+        });
+        if (originMarker) calculateRoute();
+    }
 });
 
-function calculateRemainingDistance(current, destination) {
-    const radlat1 = Math.PI * current.lat / 180;
-    const radlat2 = Math.PI * destination.lat() / 180;
-    const theta = (current.lng - destination.lng()) * Math.PI / 180;
-    let dist = Math.sin(radlat1) * Math.sin(radlat2) + Math.cos(radlat1) * Math.cos(radlat2) * Math.cos(theta);
-    dist = Math.acos(dist) * 180 / Math.PI * 60 * 1.1515 * 1609.344;
-    return dist;
-}
+walkingModeBtn.addEventListener('click', () => {
+    routeMode = 'WALKING';
+    walkingModeBtn.classList.add('active');
+    drivingModeBtn.classList.remove('active');
+    if (originMarker && destinationMarker) calculateRoute();
+});
+
+drivingModeBtn.addEventListener('click', () => {
+    routeMode = 'DRIVING';
+    drivingModeBtn.classList.add('active');
+    walkingModeBtn.classList.remove('active');
+    if (originMarker && destinationMarker) calculateRoute();
+});
+
+startRouteBtn.addEventListener('click', () => {
+    if (currentRoute) {
+        routeProgress.style.display = 'block';
+        startRouteTracking();
+        routeDetailsPanel.classList.add('visible');
+    }
+});
 
 routeDetailsBtn.addEventListener('click', () => {
-    if (!currentRoute) return;
-    routeDetailsPanel.classList.add('visible');
-    routeDetailsContent.innerHTML = '';
-    currentRoute.legs[0].steps.forEach((step, index) => {
-        const stepItem = document.createElement('div');
-        stepItem.className = 'step-item';
-        stepItem.innerHTML = `
-            <div class="step-number">${index + 1}</div>
-            <div class="step-content">${step.instructions} (${step.distance.text})</div>
-        `;
-        routeDetailsContent.appendChild(stepItem);
-    });
+    if (currentRoute) routeDetailsPanel.classList.add('visible');
 });
 
 closeRouteDetailsBtn.addEventListener('click', () => {
     routeDetailsPanel.classList.remove('visible');
 });
 
+function startRouteTracking() {
+    if (!currentRoute) return;
+    const totalDistance = currentRoute.legs[0].distance.value;
+    routeUpdateWatcher = setInterval(() => {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(position => {
+                const currentPos = {lat: position.coords.latitude, lng: position.coords.longitude};
+                userMarker.setPosition(currentPos);
+                const distanceRemaining = google.maps.geometry.spherical.computeDistanceBetween(
+                    new google.maps.LatLng(currentPos),
+                    destinationMarker.getPosition()
+                );
+                const progress = ((totalDistance - distanceRemaining) / totalDistance) * 100;
+                routeProgressBar.style.width = `${Math.min(progress, 100)}%`;
+                routeCurrentTime.textContent = new Date().toLocaleTimeString();
+                const etaSeconds = (distanceRemaining / 1.4) * (routeMode === 'WALKING' ? 1 : 0.2);
+                const etaTime = new Date(Date.now() + etaSeconds * 1000);
+                routeEta.textContent = `ETA: ${etaTime.toLocaleTimeString()}`;
+                if (progress >= 100) {
+                    clearInterval(routeUpdateWatcher);
+                    routeProgress.style.display = 'none';
+                    showToast('success', 'Route Complete', 'You have reached your destination');
+                }
+            });
+        }
+    }, 5000);
+}
+
+shareLocationBtn.addEventListener('click', () => {
+    if (currentLocation) {
+        const locationUrl = `https://www.google.com/maps?q=${currentLocation.lat},${currentLocation.lng}`;
+        navigator.clipboard.writeText(locationUrl)
+            .then(() => showToast('success', 'Location Copied', 'Share this link with others'))
+            .catch(err => showToast('error', 'Copy Failed', err.message));
+    }
+});
+
+function updateLocationInfo() {
+    const geocoder = new google.maps.Geocoder();
+    geocoder.geocode({location: currentLocation}, (results, status) => {
+        if (status === google.maps.GeocoderStatus.OK && results[0]) {
+            locationAddress.textContent = results[0].formatted_address;
+        } else {
+            locationAddress.textContent = 'Address unavailable';
+        }
+    });
+}
+
+sosButton.addEventListener('click', () => {
+    showModal(sosConfirmModal);
+    startSosCountdown();
+});
+
+function startSosCountdown() {
+    sosCountdown = 10;
+    document.getElementById('sos-timer').textContent = `Time remaining: ${sosCountdown}s`;
+    sosInterval = setInterval(() => {
+        sosCountdown--;
+        document.getElementById('sos-timer').textContent = `Time remaining: ${sosCountdown}s`;
+        if (sosCountdown <= 0) {
+            clearInterval(sosInterval);
+            triggerSos();
+        }
+    }, 1000);
+}
+
+cancelSosBtn.addEventListener('click', () => {
+    const passwordInput = document.getElementById('sos-password').value;
+    if (passwordInput === sosPassword) {
+        clearInterval(sosInterval);
+        hideModal(sosConfirmModal);
+        document.getElementById('sos-password').value = '';
+    } else {
+        showToast('error', 'Invalid Password', 'Incorrect password to cancel SOS');
+    }
+});
+
+confirmSosBtn.addEventListener('click', () => {
+    clearInterval(sosInterval);
+    triggerSos();
+});
+
+function triggerSos() {
+    if (!currentLocation) {
+        showToast('error', 'SOS Failed', 'Location unavailable');
+        return;
+    }
+    const sosData = {
+        userId: currentUser.uid,
+        location: new firebase.firestore.GeoPoint(currentLocation.lat, currentLocation.lng),
+        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+        status: 'active'
+    };
+    db.collection('sosAlerts').add(sosData)
+        .then(docRef => {
+            activeSosId = docRef.id;
+            hideModal(sosConfirmModal);
+            sosIcon.textContent = 'sos';
+            showModal(sosEndModal);
+        })
+        .catch(err => showToast('error', 'SOS Failed', err.message));
+}
+
+closeSosConfirmBtn.addEventListener('click', () => {
+    clearInterval(sosInterval);
+    hideModal(sosConfirmModal);
+});
+
+confirmEndSosBtn.addEventListener('click', () => {
+    const passwordInput = document.getElementById('sos-end-password').value;
+    if (passwordInput === sosPassword && activeSosId) {
+        db.collection('sosAlerts').doc(activeSosId).update({status: 'resolved'})
+            .then(() => {
+                hideModal(sosEndModal);
+                sosIcon.textContent = 'emergency';
+                activeSosId = null;
+                document.getElementById('sos-end-password').value = '';
+            })
+            .catch(err => showToast('error', 'End SOS Failed', err.message));
+    } else {
+        showToast('error', 'Invalid Password', 'Incorrect password to end SOS');
+    }
+});
+
+closeSosEndBtn.addEventListener('click', () => hideModal(sosEndModal));
+cancelEndSosBtn.addEventListener('click', () => hideModal(sosEndModal));
+
+function listenForSosAlerts() {
+    db.collection('users').doc(currentUser.uid).collection('emergencyContacts').get()
+        .then(querySnapshot => {
+            const guardianKeys = querySnapshot.docs.map(doc => doc.data().guardianKey);
+            db.collection('sosAlerts').where('status', '==', 'active').onSnapshot(snapshot => {
+                snapshot.docChanges().forEach(change => {
+                    if (change.type === 'added') {
+                        const sosData = change.doc.data();
+                        db.collection('users').doc(sosData.userId).get()
+                            .then(userDoc => {
+                                if (guardianKeys.includes(userDoc.data().guardianKey) && !firstSosReceived[change.doc.id]) {
+                                    firstSosReceived[change.doc.id] = true;
+                                    const message = `${userDoc.data().fullName} has triggered an SOS alert!`;
+                                    showEmergencyNotification(message, sosData.location);
+                                }
+                            });
+                    }
+                });
+            });
+        });
+}
+
+navigateToBtn.addEventListener('click', () => {
+    if (lastSosLocation) {
+        originSearchInput.value = 'Current Location';
+        destinationSearchInput.value = 'SOS Location';
+        if (originMarker) originMarker.setMap(null);
+        originMarker = new google.maps.Marker({
+            position: currentLocation,
+            map: map,
+            icon: {url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="#D32F2F"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>')}
+        });
+        if (destinationMarker) destinationMarker.setMap(null);
+        destinationMarker = new google.maps.Marker({
+            position: {lat: lastSosLocation.latitude, lng: lastSosLocation.longitude},
+            map: map,
+            icon: {url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="#333333"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>')}
+        });
+        calculateRoute();
+        emergencyNotification.classList.remove('active');
+    }
+});
+
+closeEmergencyNotificationBtn.addEventListener('click', () => {
+    emergencyNotification.classList.remove('active');
+});
+
+customSosBtn.addEventListener('click', () => {
+    customSosInput.value = customSosPhrase;
+    showModal(customSosModal);
+});
+
+closeCustomSosBtn.addEventListener('click', () => hideModal(customSosModal));
+cancelCustomSosBtn.addEventListener('click', () => hideModal(customSosModal));
+
+customSosForm.addEventListener('submit', e => {
+    e.preventDefault();
+    const phrase = sanitizeInput(customSosInput.value.trim());
+    if (phrase.split(' ').length > 5) {
+        document.getElementById('custom-sos-error').textContent = 'Phrase must be 5 words or less';
+        return;
+    }
+    db.collection('users').doc(currentUser.uid).update({customSosPhrase: phrase})
+        .then(() => {
+            customSosPhrase = phrase;
+            hideModal(customSosModal);
+            showToast('success', 'SOS Phrase Updated', 'Custom SOS phrase saved');
+        })
+        .catch(err => showToast('error', 'Update Failed', err.message));
+});
+
+function initSpeechRecognition() {
+    if ('webkitSpeechRecognition' in window) {
+        recognition = new webkitSpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = false;
+        recognition.lang = 'en-US';
+        recognition.onresult = event => {
+            const transcript = event.results[event.results.length - 1][0].transcript.trim().toLowerCase();
+            if (transcript === customSosPhrase) {
+                showModal(sosConfirmModal);
+                startSosCountdown();
+            }
+        };
+        recognition.onend = () => {
+            if (currentUser && isListening) recognition.start();
+        };
+        recognition.onerror = err => console.error('Speech recognition error:', err);
+        isListening = true;
+        recognition.start();
+    }
+}
+
+function loadCustomSosPhrase() {
+    db.collection('users').doc(currentUser.uid).get()
+        .then(doc => {
+            if (doc.exists && doc.data().customSosPhrase) {
+                customSosPhrase = doc.data().customSosPhrase;
+            }
+        });
+}
+
 navItems.forEach(item => {
     item.addEventListener('click', e => {
         e.preventDefault();
-        if (item.dataset.page === 'sos') return;
-        showPage(item.dataset.page);
+        if (item.dataset.page !== 'sos') showPage(item.dataset.page);
     });
 });
     </script>
