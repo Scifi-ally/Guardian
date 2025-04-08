@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Guardian - Women's Safety App</title>
+    <title>SOSecure - Women's Safety App</title>
     <link href="https://fonts.cdnfonts.com/css/geist-mono" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
@@ -11,7 +11,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
     <style>
         * {margin: 0;padding: 0;box-sizing: border-box;outline: none;font-family: 'Geist Mono', monospace;-webkit-tap-highlight-color: transparent;}
-        :root {--primary: black;--sos: #D32F2F;--black: #000000;--white: #FFFFFF;--gray-100: #F5F5F5;--gray-200: #E0E0E0;--gray-300: #CCCCCC;--gray-500: #777777;--gray-700: #333333;--gray-900: #1A1A1A;--border-radius: 12px;}
+        :root {--primary: #1E3A8A;--sos: #D32F2F;--black: #000000;--white: #FFFFFF;--gray-100: #F5F5F5;--gray-200: #E0E0E0;--gray-300: #CCCCCC;--gray-500: #777777;--gray-700: #333333;--gray-900: #1A1A1A;--border-radius: 12px;}
         body {background-color: var(--white);color: var(--black);min-height: 100vh;position: relative;overflow: hidden;padding-top: env(safe-area-inset-top);padding-bottom: env(safe-area-inset-bottom);padding-left: env(safe-area-inset-left);padding-right: env(safe-area-inset-right);}
         .container {padding: 20px;max-width: 100%;}
         .flex {display: flex;}
@@ -42,7 +42,7 @@
         .hidden {display: none !important;}
         .page {position: absolute;top: 0;left: 0;width: 100%;min-height: 100vh;padding-bottom: 80px;opacity: 0;transform: translateX(100%);z-index: 1;overflow-y: hidden;transition: transform 0.4s cubic-bezier(0.4,0,0.2,1), opacity 0.2s ease;}
         .page.active {opacity: 1;transform: translateX(0);z-index: 10;}
-        .page.exiting {transform: translateX(-100%);opacity: 0;}
+        .page.exiting {transform: translateX(-100%);opacity: 0;transition: transform 0.4s cubic-bezier(0.4,0,0.2,1), opacity 0.2s ease;}
         .form-group {margin-bottom: 20px;}
         .form-label {display: block;font-size: 16px;font-weight: 500;margin-bottom: 6px;color: var(--black);}
         .form-input {width: 100%;padding: 14px 16px;border: 1px solid var(--gray-200);border-radius: var(--border-radius);font-size: 18px;background-color: var(--white);color: var(--black);transition: border-color 0.3s ease, transform 0.2s ease;}
@@ -79,10 +79,8 @@
         .sos-nav-button:hover {transform: scale(1.15);box-shadow: 0 8px 20px rgba(211,47,47,0.6);opacity: 0.9;}
         .sos-nav-button:active {transform: scale(0.95);}
         .sos-nav-button .material-icons {font-size: 28px;margin-bottom: 0;}
-        .map-container {overflow-x: hidden;position: fixed;top: 0;left: 0;right: 0;bottom: 80px;width: 100%;height: calc(100vh - 80px);overflow: hidden;z-index: 0;}
-        #map {overflow-x: hidden;
-    width: 100%;
-    max-width: 100%;position: absolute;top: 0;bottom: 0;left: 0;right: 0;z-index: 1;touch-action: none;}
+        .map-container {position: fixed;top: 0;left: 0;right: 0;bottom: 80px;width: 100%;height: calc(100vh - 80px);overflow: hidden;z-index: 0;}
+        #map {position: absolute;top: 0;bottom: 0;left: 0;right: 0;z-index: 1;touch-action: none;}
         .map-search-container {position: absolute;top: 20px;left: 20px;right: 20px;background: var(--white);border-radius: 12px;padding: 8px;box-shadow: 0 2px 8px rgba(0,0,0,0.1);z-index: 100;transition: transform 0.4s cubic-bezier(0.4,0,0.2,1);opacity: 0;transform: translateY(-20px);animation: slideInDown 0.5s ease forwards;}
         .map-search {display: flex;align-items: center;padding: 4px;}
         .search-icon {display: flex;align-items: center;justify-content: center;width: 48px;height: 48px;color: var(--gray-500);transition: transform 0.2s ease;}
@@ -100,12 +98,13 @@
         .route-btn-text {font-size: 18px;}
         .location-info-handle {position: fixed;bottom: 85px;left: 50%;transform: translateX(-50%);width: 40px;height: 5px;background-color: var(--gray-300);border-radius: 2.5px;cursor: pointer;z-index: 151;transition: background-color 0.3s ease;}
         .location-info-handle:hover {background-color: var(--gray-500);}
-        .location-info {position: fixed;left: 0;right: 0;bottom: 80px;background: var(--white);border-radius: 16px 16px 0 0;padding: 24px 16px 80px 16px;box-shadow: 0 -2px 8px rgba(0,0,0,0.1);z-index: 150;height: auto;max-height: calc(70vh - 80px);overflow-y: auto;-ms-overflow-style: none;scrollbar-width: thin;scrollbar-color: var(--gray-700) var(--gray-200);transition: transform 0.4s cubic-bezier(0.4,0,0.2,1);transform: translateY(100%);}
+        .location-info {position: fixed;left: 0;right: 0;bottom: 80px;background: var(--white);border-radius: 16px 16px 0 0;padding: 24px 16px 80px 16px;box-shadow: 0 -2px 8px rgba(0,0,0,0.1);z-index: 150;height: auto;max-height: calc(70vh - 80px);overflow-y: auto;-ms-overflow-style: none;scrollbar-width: thin;scrollbar-color: var(--gray-700) var(--gray-200);transition: transform 0.4s cubic-bezier(0.4,0,0.2,1);}
         .location-info::-webkit-scrollbar {width: 8px;}
         .location-info::-webkit-scrollbar-track {background: var(--gray-200);border-radius: 4px;}
         .location-info::-webkit-scrollbar-thumb {background: var(--gray-700);border-radius: 4px;}
         .location-info::-webkit-scrollbar-thumb:hover {background: #555;}
         .location-info.visible {transform: translateY(0);animation: slideUp 0.4s ease forwards;}
+        .location-info:not(.visible) {transform: translateY(100%);animation: slideDown 0.4s ease forwards;}
         .location-info h3 {font-size: 20px;font-weight: 600;margin-bottom: 8px;}
         .location-info p {font-size: 14px;color: var(--gray-500);margin-bottom: 12px;}
         .location-actions {display: flex;gap: 12px;justify-content: space-between;}
@@ -125,8 +124,9 @@
         .route-option-info {flex: 1;}
         .route-option-title {font-weight: 500;margin-bottom: 2px;color: var(--black);}
         .route-option-details {font-size: 12px;color: var(--gray-500);}
-        .route-details {position: fixed;top: 0;right: -350px;width: 320px;height: calc(100vh - 80px);background-color: var(--white);z-index: 200;box-shadow: -2px 0 8px rgba(0,0,0,0.1);padding: 20px;display: flex;flex-direction: column;border-left: 1px solid var(--gray-200);overflow-y: auto;transition: right 0.4s ease-in-out;}
-        .route-details.visible {right: 0;}
+        .route-details {position: fixed;top: 0;right: -350px;width: 320px;height: calc(100vh - 80px);background-color: var(--white);z-index: 200;box-shadow: -2px 0 8px rgba(0,0,0,0.1);padding: 20px;display: flex;flex-direction: column;border-left: 1px solid var(--gray-200);overflow-y: auto;transition: transform 0.4s cubic-bezier(0.4,0,0.2,1);}
+        .route-details.visible {transform: translateX(0);}
+        .route-details:not(.visible) {transform: translateX(100%);animation: slideRight 0.4s ease forwards;}
         .route-details-header {display: flex;justify-content: space-between;align-items: center;margin-bottom: 16px;padding-bottom: 8px;border-bottom: 1px solid var(--gray-200);}
         .route-details-content {flex: 1;overflow-y: auto;}
         .step-item {padding: 12px;border-bottom: 1px solid var(--gray-200);display: flex;transition: background-color 0.3s ease, transform 0.3s ease;opacity: 0;transform: translateX(20px);animation: slideInLeft 0.3s ease forwards;animation-delay: calc(var(--step-index) * 0.1s);}
@@ -171,6 +171,7 @@
         .modal-overlay.active {opacity: 1;visibility: visible;}
         .modal {background-color: var(--white);border-radius: 16px 16px 0 0;width: 100%;transform: translateY(100%);transition: transform 0.4s cubic-bezier(0.4,0,0.2,1);}
         .modal-overlay.active .modal {transform: translateY(0);animation: slideUp 0.4s ease forwards;}
+        .modal-overlay:not(.active) .modal {transform: translateY(100%);animation: slideDown 0.4s ease forwards;}
         .modal-header {padding: 16px;border-bottom: 1px solid var(--gray-200);display: flex;align-items: center;justify-content: space-between;}
         .modal-body {padding: 20px 16px;}
         .modal-footer {padding: 16px;border-top: 1px solid var(--gray-200);display: flex;justify-content: flex-end;gap: 12px;}
@@ -192,6 +193,7 @@
         .toast-message {font-size: 14px;color: var(--gray-500);}
         .emergency-notification {position: fixed;top: -100px;left: 20px;right: 20px;background-color: var(--sos);color: var(--white);border-radius: var(--border-radius);padding: 16px;box-shadow: 0 0 10px rgba(211,47,47,0.5);z-index: 3000;display: flex;align-items: center;justify-content: space-between;transition: top 0.4s ease-in-out;}
         .emergency-notification.active {top: 20px;animation: slideDown 0.4s ease forwards;}
+        .emergency-notification:not(.active) {top: -100px;animation: slideDown 0.4s ease forwards;animation-direction: reverse;}
         .emergency-notification .notification-icon {margin-right: 12px;animation: pulse 1.5s infinite;}
         .emergency-notification .notification-content {flex: 1;}
         .emergency-notification .notification-title {font-weight: 600;margin-bottom: 4px;}
@@ -206,18 +208,16 @@
         @keyframes slideInDown {from {transform: translateY(-20px);opacity: 0;}to {transform: translateY(0);opacity: 1;}}
         @keyframes slideUp {from {transform: translateY(100%);}to {transform: translateY(0);}}
         @keyframes slideInLeft {from {transform: translateX(20px);opacity: 0;}to {transform: translateX(0);opacity: 1;}}
-        @keyframes slideDown {from {top: -100px;}to {top: 20px;}}
+        @keyframes slideDown {from {transform: translateY(0);opacity: 1;}to {transform: translateY(100%);opacity: 0;}}
+        @keyframes slideRight {from {transform: translateX(0);opacity: 1;}to {transform: translateX(100%);opacity: 0;}}
         @keyframes pulse {0% {transform: scale(1);}50% {transform: scale(1.1);}100% {transform: scale(1);}}
-        #home-page {
-    overflow-x: hidden;
-}
     </style>
 </head>
 <body>
     <div id="login-page" class="page active">
         <div class="auth-container">
             <div class="auth-logo">
-                <h1>Guardian</h1>
+                <h1>SOSecure</h1>
                 <p>Your personal safety companion</p>
             </div>
             <form id="login-form" class="auth-form" autocomplete="off">
@@ -239,7 +239,7 @@
     <div id="signup-page" class="page">
         <div class="auth-container">
             <div class="auth-logo">
-                <h1>Guardian</h1>
+                <h1>SOSecure</h1>
                 <p>Create your account</p>
             </div>
             <form id="signup-form" class="auth-form" autocomplete="off">
@@ -332,9 +332,9 @@
                 </div>
             </div>
             <div class="profile-section" style="--section-index: 1;">
-                <div class="section-title">Your Guardian Key</div>
+                <div class="section-title">Your SOSecure Key</div>
                 <div class="guardian-key" id="guardian-key">Loading...</div>
-                <button class="btn btn-outline mt-2 w-full" id="copy-key-btn" aria-label="Copy guardian key"><span class="material-icons mr-2">content_copy</span>Copy Key</button>
+                <button class="btn btn-outline mt-2 w-full" id="copy-key-btn" aria-label="Copy SOSecure key"><span class="material-icons mr-2">content_copy</span>Copy Key</button>
             </div>
             <div class="profile-section" style="--section-index: 2;">
                 <div class="flex justify-between items-center mb-2">
@@ -378,10 +378,10 @@
             <form id="add-contact-form" autocomplete="off">
                 <div class="modal-body">
                     <div class="form-group">
-                        <label class="form-label" for="contact-guardian-key">Guardian Key</label>
-                        <input type="text" id="contact-guardian-key" class="form-input" placeholder="Enter Guardian Key" required autocomplete="off">
+                        <label class="form-label" for="contact-guardian-key">SOSecure Key</label>
+                        <input type="text" id="contact-guardian-key" class="form-input" placeholder="Enter SOSecure Key" required autocomplete="off">
                         <div class="form-error" id="contact-guardian-key-error"></div>
-                        <p class="form-help">Ask your emergency contact for their guardian key</p>
+                        <p class="form-help">Ask your emergency contact for their SOSecure key</p>
                     </div>
                     <div class="form-group">
                         <label class="form-label" for="contact-relation">Relation</label>
@@ -472,21 +472,22 @@
         </div>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/2.4.5/purify.min.js"></script>
-<script>
-   const firebaseConfig = {
-  apiKey: "AIzaSyAv2LUHlRxvadYD2ok9zs426TxIEpXCGWA",
-  authDomain: "guardian-4a206.firebaseapp.com",
-  projectId: "guardian-4a206",
-  storageBucket: "guardian-4a206.firebasestorage.app",
-  messagingSenderId: "249797346737",
-  appId: "1:249797346737:web:29edab4d045345742d6990",
-  measurementId: "G-X35KJKEPEB"
+    <script>
+        const firebaseConfig = {
+    apiKey: "AIzaSyAv2LUHlRxvadYD2ok9zs426TxIEpXCGWA",
+    authDomain: "guardian-4a206.firebaseapp.com",
+    projectId: "guardian-4a206",
+    storageBucket: "guardian-4a206.firebasestorage.app",
+    messagingSenderId: "249797346737",
+    appId: "1:249797346737:web:29edab4d045345742d6990",
+    measurementId: "G-X35KJKEPEB"
 };
 
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
+// DOM Elements
 const pages = document.querySelectorAll('.page');
 const bottomNav = document.getElementById('bottom-nav');
 const navItems = document.querySelectorAll('.bottom-nav-item');
@@ -559,6 +560,7 @@ const cancelCustomSosBtn = document.getElementById('cancel-custom-sos');
 const customSosForm = document.getElementById('custom-sos-form');
 const customSosInput = document.getElementById('custom-sos-phrase');
 
+// Global Variables
 let currentUser = null;
 let map = null;
 let userMarker = null;
@@ -583,6 +585,7 @@ let recognition = null;
 let isListening = false;
 let lastSosTriggerTime = 0;
 
+// Utility Functions
 function sanitizeInput(input) {
     return DOMPurify.sanitize(input, {ALLOWED_TAGS: [], ALLOWED_ATTR: []});
 }
@@ -623,6 +626,7 @@ function loadGoogleMaps() {
     document.head.appendChild(script);
 }
 
+// UI Functions
 function showPage(pageId) {
     const currentActive = document.querySelector('.page.active');
     if (currentActive && currentActive.id === `${pageId}-page`) {
@@ -679,6 +683,9 @@ function showModal(modal) {
 function hideModal(modal) {
     if (!modal) return;
     modal.classList.remove('active');
+    setTimeout(() => {
+        modal.style.display = 'none';
+    }, 400);
 }
 
 function showEmergencyNotification(message, location) {
@@ -700,6 +707,7 @@ function generateGuardianKey() {
     return key;
 }
 
+// Authentication
 auth.onAuthStateChanged(user => {
     currentUser = user;
     if (user) {
@@ -796,6 +804,7 @@ logoutBtn.addEventListener('click', async () => {
     }
 });
 
+// Profile Management
 async function loadUserProfile() {
     if (!currentUser) return;
     try {
@@ -816,7 +825,7 @@ async function loadUserProfile() {
 copyKeyBtn.addEventListener('click', async () => {
     try {
         await navigator.clipboard.writeText(guardianKeyDisplay.textContent);
-        showToast('success', 'Key Copied', 'Guardian key copied to clipboard');
+        showToast('success', 'Key Copied', 'SOSecure key copied to clipboard');
     } catch (err) {
         handleError(err, 'Copy Key');
     }
@@ -858,12 +867,11 @@ async function deleteContact(contactId) {
 addContactBtn.addEventListener('click', () => showModal(addContactModal));
 closeAddContactBtn.addEventListener('click', () => hideModal(addContactModal));
 cancelAddContactBtn.addEventListener('click', () => hideModal(addContactModal));
-
 addContactForm.addEventListener('submit', async e => {
     e.preventDefault();
     try {
         const querySnapshot = await withRetry(() => db.collection('users').where('guardianKey', '==', sanitizeInput(contactGuardianKey.value)).get());
-        if (querySnapshot.empty) throw new Error('Invalid Guardian Key');
+        if (querySnapshot.empty) throw new Error('Invalid SOSecure Key');
         const contactData = querySnapshot.docs[0].data();
         await withRetry(() => db.collection('users').doc(currentUser.uid).collection('emergencyContacts').add({
             guardianKey: sanitizeInput(contactGuardianKey.value),
@@ -881,6 +889,7 @@ addContactForm.addEventListener('submit', async e => {
     }
 });
 
+// Map Functions
 function initMap() {
     const mapStyle = [
         {"featureType": "all", "elementType": "geometry.fill", "stylers": [{"weight": "2.00"}]},
@@ -900,6 +909,7 @@ function initMap() {
         {"featureType": "water", "elementType": "all", "stylers": [{"color": "#d9e8ff"}, {"visibility": "on"}]},
         {"featureType": "water", "elementType": "geometry.fill", "stylers": [{"color": "#d9e8ff"}]}
     ];
+    
     map = new google.maps.Map(mapElement, {
         center: { lat: 37.7749, lng: -122.4194 },
         zoom: 15,
@@ -907,20 +917,25 @@ function initMap() {
         styles: mapStyle,
         gestureHandling: 'greedy'
     });
+    
     directionsService = new google.maps.DirectionsService();
     directionsRenderer = new google.maps.DirectionsRenderer({
         map: map,
         suppressMarkers: true,
         polylineOptions: { strokeColor: '#333333', strokeWeight: 5 }
     });
+    
     userMarker = new google.maps.Marker({
         map: map,
         icon: { url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg width="24" height="24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10" fill="#333333"/><circle cx="12" cy="12" r="5" fill="#ffffff"/></svg>'), scaledSize: new google.maps.Size(24, 24) }
     });
+    
     originMarker = new google.maps.Marker({ map: null, icon: { url: 'http://maps.google.com/mapfiles/ms/icons/green-dot.png' } });
     destinationMarker = new google.maps.Marker({ map: null, icon: { url: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png' } });
+    
     const originAutocomplete = new google.maps.places.Autocomplete(originSearchInput, { fields: ['place_id', 'name', 'geometry'] });
     const destinationAutocomplete = new google.maps.places.Autocomplete(destinationSearchInput, { fields: ['place_id', 'name', 'geometry'] });
+    
     originAutocomplete.addListener('place_changed', () => {
         const place = originAutocomplete.getPlace();
         if (place.geometry) {
@@ -929,6 +944,7 @@ function initMap() {
             map.setCenter(place.geometry.location);
         }
     });
+    
     destinationAutocomplete.addListener('place_changed', () => {
         const place = destinationAutocomplete.getPlace();
         if (place.geometry) {
@@ -943,6 +959,7 @@ function initMap() {
             locationInfo.classList.remove('visible');
         }
     });
+    
     map.addListener('drag', () => {
         if (locationInfo.classList.contains('visible') && !routeDetailsPanel.classList.contains('visible')) {
             locationInfo.classList.remove('visible');
@@ -960,6 +977,11 @@ function updateUserLocation() {
     }
     navigator.geolocation.getCurrentPosition(
         position => {
+            if (position.coords.accuracy > 100) {
+                showToast('error', 'Low Accuracy', 'Location accuracy is low. Please ensure GPS is enabled.');
+                setTimeout(updateUserLocation, 2000);
+                return;
+            }
             currentLocation = { lat: position.coords.latitude, lng: position.coords.longitude };
             userMarker.setPosition(currentLocation);
             if (map) {
@@ -968,10 +990,32 @@ function updateUserLocation() {
             }
         },
         err => {
-            handleError(err, 'Location');
-            locationAddress.textContent = 'Unable to get location. Enter manually.';
+            if (err.code === err.PERMISSION_DENIED) {
+                showToast('error', 'Location Denied', 'Please enable location services for accurate tracking.');
+                locationAddress.textContent = 'Location access denied. Enable in settings.';
+                setTimeout(() => {
+                    if (confirm('Location services are required for SOSecure. Enable now?')) {
+                        updateUserLocation();
+                    }
+                }, 3000);
+            } else if (err.code === err.POSITION_UNAVAILABLE) {
+                handleError(err, 'Location');
+                locationAddress.textContent = 'Location unavailable. Check GPS signal.';
+            } else {
+                handleError(err, 'Location');
+                locationAddress.textContent = 'Unable to get location. Try again.';
+            }
         },
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+    );
+    navigator.geolocation.watchPosition(
+        position => {
+            currentLocation = { lat: position.coords.latitude, lng: position.coords.longitude };
+            userMarker.setPosition(currentLocation);
+            if (map) map.setCenter(currentLocation);
+        },
+        err => console.error(err),
+        { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
     );
 }
 
@@ -979,18 +1023,21 @@ function reverseGeocode(location) {
     const geocoder = new google.maps.Geocoder();
     geocoder.geocode({ location }, (results, status) => {
         if (status === 'OK' && results[0]) {
+            locationName.textContent = results[0].address_components[1]?.long_name || 'Current Location';
             locationAddress.textContent = results[0].formatted_address;
         } else {
-            locationAddress.textContent = 'Address not found';
+            locationAddress.textContent = 'Unable to determine address';
         }
     });
 }
 
+// Map Event Listeners
 currentLocationOriginBtn.addEventListener('click', () => {
     if (currentLocation) {
-        originSearchInput.value = 'Current Location';
+        originSearchInput.value = `${currentLocation.lat}, ${currentLocation.lng}`;
         originMarker.setPosition(currentLocation);
         originMarker.setMap(map);
+        map.setCenter(currentLocation);
     } else {
         updateUserLocation();
     }
@@ -998,122 +1045,108 @@ currentLocationOriginBtn.addEventListener('click', () => {
 
 currentLocationDestBtn.addEventListener('click', () => {
     if (currentLocation) {
-        destinationSearchInput.value = 'Current Location';
+        destinationSearchInput.value = `${currentLocation.lat}, ${currentLocation.lng}`;
         destinationMarker.setPosition(currentLocation);
         destinationMarker.setMap(map);
+        map.setCenter(currentLocation);
     } else {
         updateUserLocation();
     }
 });
 
 routeSearchBtn.addEventListener('click', () => {
+    if (!originSearchInput.value || !destinationSearchInput.value) {
+        showToast('error', 'Missing Input', 'Please enter both starting point and destination');
+        return;
+    }
     calculateRoute();
 });
 
-function calculateRoute() {
-    const origin = originMarker.getPosition() || currentLocation;
-    const destination = destinationMarker.getPosition();
-    if (!origin || !destination) {
-        showToast('error', 'Route Error', 'Please set both origin and destination');
+locationInfoHandle.addEventListener('click', () => {
+    locationInfo.classList.toggle('visible');
+});
+
+shareLocationBtn.addEventListener('click', async () => {
+    if (!currentLocation) {
+        showToast('error', 'No Location', 'Unable to share location');
         return;
     }
-    directionsService.route({
-        origin,
-        destination,
-        travelMode: google.maps.TravelMode[routeMode],
-        provideRouteAlternatives: true
-    }, (result, status) => {
-        if (status === 'OK') {
-            directionsRenderer.setDirections(result);
-            currentRoute = result.routes[0];
-            alternativeRoutesData = result.routes;
-            selectedRouteIndex = 0;
-            displayRouteInfo();
-            locationInfo.classList.add('visible');
-        } else {
-            handleError(new Error(status), 'Route Calculation');
-        }
-    });
-}
+    const shareText = `My location: https://maps.google.com/?q=${currentLocation.lat},${currentLocation.lng}`;
+    try {
+        await navigator.clipboard.writeText(shareText);
+        showToast('success', 'Location Copied', 'Location URL copied to clipboard');
+    } catch (err) {
+        handleError(err, 'Share Location');
+    }
+});
 
-function displayRouteInfo() {
-    const route = currentRoute;
-    const duration = route.legs[0].duration.text;
-    const distance = route.legs[0].distance.text;
-    routeEta.textContent = `ETA: ${duration}`;
-    routeCurrentTime.textContent = `Distance: ${distance}`;
-    routeProgress.style.display = 'block';
-    routeProgressBar.style.width = '0%';
-    displayAlternativeRoutes();
-}
+startRouteBtn.addEventListener('click', () => {
+    if (!currentRoute) {
+        showToast('error', 'No Route', 'Please calculate a route first');
+        return;
+    }
+    startRouteTracking();
+});
 
 routeDetailsBtn.addEventListener('click', () => {
-    displayRouteDetails();
-    routeDetailsPanel.classList.add('visible');
+    if (!currentRoute) {
+        showToast('error', 'No Route', 'Please calculate a route first');
+        return;
+    }
+    routeDetailsPanel.classList.toggle('visible');
+    if (routeDetailsPanel.classList.contains('visible')) {
+        displayRouteDetails();
+    }
 });
 
 closeRouteDetailsBtn.addEventListener('click', () => {
     routeDetailsPanel.classList.remove('visible');
 });
 
-function displayRouteDetails() {
-    routeDetailsContent.innerHTML = '';
-    const steps = currentRoute.legs[0].steps;
-    steps.forEach((step, index) => {
-        const stepItem = document.createElement('div');
-        stepItem.className = 'step-item';
-        stepItem.style.setProperty('--step-index', index);
-        stepItem.innerHTML = `
-            <div class="step-number">${index + 1}</div>
-            <div class="step-content">${step.instructions}</div>
-        `;
-        routeDetailsContent.appendChild(stepItem);
-    });
-}
-
-startRouteBtn.addEventListener('click', () => {
-    startRouteGuidance();
-});
-
-function startRouteGuidance() {
-    if (!currentRoute) return;
-    routeProgress.style.display = 'block';
-    alternativeRoutes.style.display = 'none';
-    locationInfo.classList.add('visible');
-    displayRouteDetails();
-    let stepIndex = 0;
-    routeUpdateWatcher = setInterval(() => {
-        if (!navigator.geolocation) return;
-        navigator.geolocation.getCurrentPosition(position => {
-            const userPos = { lat: position.coords.latitude, lng: position.coords.longitude };
-            userMarker.setPosition(userPos);
-            const remainingDistance = google.maps.geometry.spherical.computeDistanceBetween(userPos, currentRoute.legs[0].end_location);
-            const totalDistance = currentRoute.legs[0].distance.value;
-            const progress = ((totalDistance - remainingDistance) / totalDistance) * 100;
-            routeProgressBar.style.width = `${Math.min(progress, 100)}%`;
-            if (progress >= 100) {
-                clearInterval(routeUpdateWatcher);
-                routeUpdateWatcher = null;
-                routeProgress.style.display = 'none';
-                showToast('success', 'Route Completed', 'You have arrived at your destination!');
-            }
-        });
-    }, 5000);
-}
-
 drivingModeBtn.addEventListener('click', () => {
     routeMode = 'DRIVING';
     drivingModeBtn.classList.add('active');
     walkingModeBtn.classList.remove('active');
-    if (originMarker.getPosition() && destinationMarker.getPosition()) calculateRoute();
+    if (originSearchInput.value && destinationSearchInput.value) calculateRoute();
 });
 
 walkingModeBtn.addEventListener('click', () => {
     routeMode = 'WALKING';
     walkingModeBtn.classList.add('active');
     drivingModeBtn.classList.remove('active');
-    if (originMarker.getPosition() && destinationMarker.getPosition()) calculateRoute();
+    if (originSearchInput.value && destinationSearchInput.value) calculateRoute();
 });
+
+// Route Functions
+function calculateRoute() {
+    const request = {
+        origin: originSearchInput.value,
+        destination: destinationSearchInput.value,
+        travelMode: routeMode,
+        provideRouteAlternatives: true
+    };
+    
+    directionsService.route(request, (result, status) => {
+        if (status === 'OK') {
+            directionsRenderer.setDirections(result);
+            currentRoute = result.routes[0];
+            alternativeRoutesData = result.routes;
+            selectedRouteIndex = 0;
+            
+            if (!currentRoute.legs || !currentRoute.legs[0]) {
+                showToast('error', 'Route Error', 'Invalid route data received');
+                return;
+            }
+            
+            displayAlternativeRoutes();
+            map.setCenter(currentRoute.legs[0].start_location);
+            locationInfo.classList.add('visible');
+        } else {
+            handleError(new Error(status), 'Route Calculation');
+            showToast('error', 'Route Failed', `Failed to calculate route: ${status}`);
+        }
+    });
+}
 
 function displayAlternativeRoutes() {
     routeAlternativesContainer.innerHTML = '';
@@ -1121,18 +1154,11 @@ function displayAlternativeRoutes() {
     alternativeRoutesData.forEach((route, index) => {
         const routeOption = document.createElement('div');
         routeOption.className = `route-option ${index === selectedRouteIndex ? 'active' : ''}`;
-        routeOption.innerHTML = `
-            <div class="route-option-icon"><span class="material-icons">${routeMode === 'WALKING' ? 'directions_walk' : 'directions_car'}</span></div>
-            <div class="route-option-info">
-                <div class="route-option-title">Route ${index + 1}</div>
-                <div class="route-option-details">${route.legs[0].duration.text} - ${route.legs[0].distance.text}</div>
-            </div>
-        `;
+        routeOption.innerHTML = `<div class="route-option-icon"><span class="material-icons">${routeMode === 'DRIVING' ? 'directions_car' : 'directions_walk'}</span></div><div class="route-option-info"><div class="route-option-title">${route.summary || 'Route ' + (index + 1)}</div><div class="route-option-details">${route.legs[0].distance.text} - ${route.legs[0].duration.text}</div></div>`;
         routeOption.addEventListener('click', () => {
             selectedRouteIndex = index;
-            currentRoute = route;
             directionsRenderer.setRouteIndex(index);
-            displayRouteInfo();
+            currentRoute = alternativeRoutesData[index];
             displayRouteDetails();
             document.querySelectorAll('.route-option').forEach(opt => opt.classList.remove('active'));
             routeOption.classList.add('active');
@@ -1141,24 +1167,67 @@ function displayAlternativeRoutes() {
     });
 }
 
-shareLocationBtn.addEventListener('click', async () => {
-    if (!currentLocation) {
-        showToast('error', 'Location Error', 'Unable to share location');
+function displayRouteDetails() {
+    if (!currentRoute || !currentRoute.legs || !currentRoute.legs[0]) {
+        routeDetailsContent.innerHTML = '<p>No route details available</p>';
         return;
     }
-    const locationText = `My location: https://maps.google.com/?q=${currentLocation.lat},${currentLocation.lng}`;
-    try {
-        await navigator.clipboard.writeText(locationText);
-        showToast('success', 'Location Shared', 'Location copied to clipboard');
-    } catch (err) {
-        handleError(err, 'Share Location');
+
+    routeDetailsContent.innerHTML = '';
+    const steps = currentRoute.legs[0].steps;
+    
+    if (!steps || steps.length === 0) {
+        routeDetailsContent.innerHTML = '<p>No steps available for this route</p>';
+        return;
     }
-});
 
-locationInfoHandle.addEventListener('click', () => {
-    locationInfo.classList.toggle('visible');
-});
+    steps.forEach((step, index) => {
+        const stepItem = document.createElement('div');
+        stepItem.className = 'step-item';
+        stepItem.style.setProperty('--step-index', index);
+        
+        const instructions = step.instructions ? DOMPurify.sanitize(step.instructions) : 'Continue';
+        const distance = step.distance && step.distance.text ? step.distance.text : 'Unknown distance';
+        const duration = step.duration && step.duration.text ? step.duration.text : 'Unknown duration';
+        
+        stepItem.innerHTML = `
+            <div class="step-number">${index + 1}</div>
+            <div class="step-content">
+                ${instructions}
+                <br>
+                <small>${distance} - ${duration}</small>
+            </div>
+        `;
+        routeDetailsContent.appendChild(stepItem);
+    });
+}
 
+function startRouteTracking() {
+    routeProgress.style.display = 'block';
+    const totalDistance = currentRoute.legs[0].distance.value;
+    const totalDuration = currentRoute.legs[0].duration.value;
+    routeUpdateWatcher = setInterval(() => {
+        if (!currentLocation) return;
+        const remainingDistance = google.maps.geometry.spherical.computeDistanceBetween(
+            new google.maps.LatLng(currentLocation.lat, currentLocation.lng),
+            currentRoute.legs[0].end_location
+        );
+        const progress = Math.max(0, (1 - remainingDistance / totalDistance) * 100);
+        routeProgressBar.style.width = `${progress}%`;
+        const elapsedTime = (totalDuration * progress) / 100;
+        const remainingTime = totalDuration - elapsedTime;
+        routeCurrentTime.textContent = `Progress: ${Math.round(progress)}%`;
+        routeEta.textContent = `ETA: ${Math.round(remainingTime / 60)} min`;
+        if (progress >= 100) {
+            clearInterval(routeUpdateWatcher);
+            routeUpdateWatcher = null;
+            routeProgress.style.display = 'none';
+            showToast('success', 'Route Completed', 'You have reached your destination');
+        }
+    }, 5000);
+}
+
+// SOS Functions
 sosButton.addEventListener('click', () => {
     if (activeSosId) {
         showModal(sosEndModal);
@@ -1170,17 +1239,21 @@ sosButton.addEventListener('click', () => {
 function startSosCountdown() {
     showModal(sosConfirmModal);
     sosCountdown = 10;
-    const sosTimer = document.getElementById('sos-timer');
-    sosTimer.textContent = `Time remaining: ${sosCountdown}s`;
+    document.getElementById('sos-timer').textContent = `Time remaining: ${sosCountdown}s`;
     sosInterval = setInterval(() => {
         sosCountdown--;
-        sosTimer.textContent = `Time remaining: ${sosCountdown}s`;
+        document.getElementById('sos-timer').textContent = `Time remaining: ${sosCountdown}s`;
         if (sosCountdown <= 0) {
             clearInterval(sosInterval);
-            triggerSos();
+            triggerSosAlert();
         }
     }, 1000);
 }
+
+closeSosConfirmBtn.addEventListener('click', () => {
+    clearInterval(sosInterval);
+    hideModal(sosConfirmModal);
+});
 
 cancelSosBtn.addEventListener('click', () => {
     const passwordInput = document.getElementById('sos-password').value;
@@ -1194,48 +1267,44 @@ cancelSosBtn.addEventListener('click', () => {
 
 confirmSosBtn.addEventListener('click', () => {
     clearInterval(sosInterval);
-    triggerSos();
+    triggerSosAlert();
 });
 
-closeSosConfirmBtn.addEventListener('click', () => {
-    clearInterval(sosInterval);
-    hideModal(sosConfirmModal);
-});
-
-async function triggerSos() {
+async function triggerSosAlert() {
     if (!currentLocation) {
-        showToast('error', 'SOS Error', 'Cannot send SOS without location');
+        showToast('error', 'No Location', 'Cannot send SOS without location');
+        hideModal(sosConfirmModal);
         return;
     }
     try {
-        const sosDoc = await db.collection('sosAlerts').add({
+        const sosDoc = await withRetry(() => db.collection('sosAlerts').add({
             userId: currentUser.uid,
+            name: profileName.textContent,
             location: new firebase.firestore.GeoPoint(currentLocation.lat, currentLocation.lng),
             timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-            active: true
-        });
+            status: 'active'
+        }));
         activeSosId = sosDoc.id;
         sosIcon.textContent = 'sos';
         hideModal(sosConfirmModal);
-        showToast('success', 'SOS Sent', 'Emergency contacts notified');
         notifyEmergencyContacts();
     } catch (err) {
-        handleError(err, 'SOS Trigger');
+        handleError(err, 'SOS Alert');
     }
 }
 
 async function notifyEmergencyContacts() {
     try {
-        const contactsSnapshot = await db.collection('users').doc(currentUser.uid).collection('emergencyContacts').get();
-        contactsSnapshot.forEach(contact => {
-            const contactData = contact.data();
-            db.collection('users').where('email', '==', contactData.email).get().then(snapshot => {
-                snapshot.forEach(doc => {
-                    db.collection('users').doc(doc.id).collection('notifications').add({
+        const contacts = await withRetry(() => db.collection('users').doc(currentUser.uid).collection('emergencyContacts').get());
+        contacts.forEach(doc => {
+            const contact = doc.data();
+            db.collection('users').where('email', '==', contact.email).get().then(querySnapshot => {
+                querySnapshot.forEach(contactDoc => {
+                    db.collection('users').doc(contactDoc.id).collection('notifications').add({
                         type: 'sos',
-                        message: `${profileName.textContent} triggered an SOS alert!`,
-                        location: new firebase.firestore.GeoPoint(currentLocation.lat, currentLocation.lng),
-                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                        message: `${profileName.textContent} has triggered an SOS alert! Location: ${currentLocation.lat}, ${currentLocation.lng}`,
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                        location: new firebase.firestore.GeoPoint(currentLocation.lat, currentLocation.lng)
                     });
                 });
             });
@@ -1245,15 +1314,17 @@ async function notifyEmergencyContacts() {
     }
 }
 
+closeSosEndBtn.addEventListener('click', () => hideModal(sosEndModal));
+cancelEndSosBtn.addEventListener('click', () => hideModal(sosEndModal));
 confirmEndSosBtn.addEventListener('click', async () => {
     const passwordInput = document.getElementById('sos-end-password').value;
     if (passwordInput === sosPassword) {
         try {
-            await db.collection('sosAlerts').doc(activeSosId).update({ active: false });
+            await withRetry(() => db.collection('sosAlerts').doc(activeSosId).update({ status: 'resolved' }));
             activeSosId = null;
             sosIcon.textContent = 'emergency';
             hideModal(sosEndModal);
-            showToast('success', 'SOS Ended', 'SOS alert has been terminated');
+            showToast('success', 'SOS Ended', 'SOS alert has been resolved');
         } catch (err) {
             handleError(err, 'End SOS');
         }
@@ -1262,32 +1333,10 @@ confirmEndSosBtn.addEventListener('click', async () => {
     }
 });
 
-cancelEndSosBtn.addEventListener('click', () => hideModal(sosEndModal));
-closeSosEndBtn.addEventListener('click', () => hideModal(sosEndModal));
-
-function listenForSosAlerts() {
-    db.collection('users').doc(currentUser.uid).collection('notifications')
-        .where('type', '==', 'sos')
-        .onSnapshot(snapshot => {
-            snapshot.docChanges().forEach(change => {
-                if (change.type === 'added') {
-                    const data = change.doc.data();
-                    if (!firstSosReceived[change.doc.id]) {
-                        firstSosReceived[change.doc.id] = true;
-                        showEmergencyNotification(data.message, data.location);
-                    }
-                }
-            });
-        });
-}
-
 navigateToBtn.addEventListener('click', () => {
     if (lastSosLocation) {
-        showPage('home');
-        originMarker.setPosition(currentLocation);
-        originMarker.setMap(map);
-        destinationMarker.setPosition(lastSosLocation);
-        destinationMarker.setMap(map);
+        originSearchInput.value = `${currentLocation.lat}, ${currentLocation.lng}`;
+        destinationSearchInput.value = `${lastSosLocation.lat}, ${lastSosLocation.lng}`;
         calculateRoute();
         emergencyNotification.classList.remove('active');
     }
@@ -1297,30 +1346,52 @@ closeEmergencyNotificationBtn.addEventListener('click', () => {
     emergencyNotification.classList.remove('active');
 });
 
-customSosBtn.addEventListener('click', () => {
-    customSosInput.value = customSosPhrase;
-    showModal(customSosModal);
-});
+function listenForSosAlerts() {
+    db.collection('users').doc(currentUser.uid).collection('notifications').where('type', '==', 'sos').onSnapshot(snapshot => {
+        snapshot.docChanges().forEach(change => {
+            if (change.type === 'added') {
+                const data = change.doc.data();
+                if (!firstSosReceived[change.doc.id]) {
+                    showEmergencyNotification(data.message, data.location);
+                    firstSosReceived[change.doc.id] = true;
+                }
+            }
+        });
+    });
+}
 
+// Custom SOS Phrase
+customSosBtn.addEventListener('click', () => showModal(customSosModal));
 closeCustomSosBtn.addEventListener('click', () => hideModal(customSosModal));
 cancelCustomSosBtn.addEventListener('click', () => hideModal(customSosModal));
-
 customSosForm.addEventListener('submit', async e => {
     e.preventDefault();
-    const phrase = sanitizeInput(customSosInput.value.trim());
+    const phrase = sanitizeInput(customSosInput.value.trim().toLowerCase());
     if (phrase.split(' ').length > 5) {
         showToast('error', 'Invalid Phrase', 'Phrase must be 5 words or less');
         return;
     }
     try {
-        await db.collection('users').doc(currentUser.uid).update({ customSosPhrase: phrase });
+        await withRetry(() => db.collection('users').doc(currentUser.uid).update({ customSosPhrase: phrase }));
         customSosPhrase = phrase;
         hideModal(customSosModal);
+        customSosForm.reset();
         showToast('success', 'Phrase Saved', 'Custom SOS phrase updated');
     } catch (err) {
         handleError(err, 'Save SOS Phrase');
     }
 });
+
+async function loadCustomSosPhrase() {
+    try {
+        const doc = await withRetry(() => db.collection('users').doc(currentUser.uid).get());
+        if (doc.exists) {
+            customSosPhrase = doc.data().customSosPhrase || 'start sos';
+        }
+    } catch (err) {
+        handleError(err, 'Load SOS Phrase');
+    }
+}
 
 function initSpeechRecognition() {
     if (!('webkitSpeechRecognition' in window)) return;
@@ -1329,11 +1400,11 @@ function initSpeechRecognition() {
     recognition.interimResults = false;
     recognition.lang = 'en-US';
     recognition.onresult = event => {
-        const transcript = event.results[event.results.length - 1][0].transcript.toLowerCase().trim();
-        const now = Date.now();
-        if (transcript.includes(customSosPhrase) && now - lastSosTriggerTime > 5000) {
-            lastSosTriggerTime = now;
-            if (!activeSosId) startSosCountdown();
+        const transcript = event.results[event.results.length - 1][0].transcript.trim().toLowerCase();
+        const currentTime = Date.now();
+        if (transcript.includes(customSosPhrase) && currentTime - lastSosTriggerTime > 5000) {
+            lastSosTriggerTime = currentTime;
+            startSosCountdown();
         }
     };
     recognition.onerror = err => console.error('Speech recognition error:', err);
@@ -1346,21 +1417,13 @@ function initSpeechRecognition() {
     }
 }
 
-function loadCustomSosPhrase() {
-    db.collection('users').doc(currentUser.uid).get().then(doc => {
-        if (doc.exists && doc.data().customSosPhrase) {
-            customSosPhrase = doc.data().customSosPhrase;
-        }
-    });
-}
-
+// Navigation
 navItems.forEach(item => {
     item.addEventListener('click', e => {
         e.preventDefault();
-        if (item.dataset.page === 'sos') return;
-        showPage(item.dataset.page);
+        if (item.dataset.page !== 'sos') showPage(item.dataset.page);
     });
 });
-</script>
-</body>
+    </script>
+    </body>
 </html>
