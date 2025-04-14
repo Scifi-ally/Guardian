@@ -2,1428 +2,185 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SOSecure - Women's Safety App</title>
-    <link href="https://fonts.cdnfonts.com/css/geist-mono" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fast SOS Loader - Women's Safety App</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
     <style>
-        * {margin: 0;padding: 0;box-sizing: border-box;outline: none;font-family: 'Geist Mono', monospace;-webkit-tap-highlight-color: transparent;}
-        :root {--primary: #1E3A8A;--sos: #D32F2F;--black: #000000;--white: #FFFFFF;--gray-100: #F5F5F5;--gray-200: #E0E0E0;--gray-300: #CCCCCC;--gray-500: #777777;--gray-700: #333333;--gray-900: #1A1A1A;--border-radius: 12px;}
-        body {background-color: var(--white);color: var(--black);min-height: 100vh;position: relative;overflow: hidden;padding-top: env(safe-area-inset-top);padding-bottom: env(safe-area-inset-bottom);padding-left: env(safe-area-inset-left);padding-right: env(safe-area-inset-right);}
-        .container {padding: 20px;max-width: 100%;}
-        .flex {display: flex;}
-        .flex-col {flex-direction: column;}
-        .items-center {align-items: center;}
-        .justify-center {justify-content: center;}
-        .justify-between {justify-content: space-between;}
-        .text-center {text-align: center;}
-        .text-primary {color: var(--primary);}
-        .text-sos {color: var(--sos);}
-        .text-gray {color: var(--gray-500);}
-        .text-white {color: var(--white);}
-        .bg-primary {background-color: var(--primary);}
-        .bg-sos {background-color: var(--sos);}
-        .rounded {border-radius: var(--border-radius);}
-        .rounded-full {border-radius: 50%;}
-        .shadow {box-shadow: 0 2px 6px rgba(0,0,0,0.1);}
-        .w-full {width: 100%;}
-        .mr-2 {margin-right: 8px;}
-        .mb-2 {margin-bottom: 8px;}
-        .mb-4 {margin-bottom: 16px;}
-        .mb-6 {margin-bottom: 24px;}
-        .mt-2 {margin-top: 8px;}
-        .mt-4 {margin-top: 16px;}
-        .p-2 {padding: 8px;}
-        .p-4 {padding: 16px;}
-        .pt-6 {padding-top: 24px;}
-        .hidden {display: none !important;}
-        .page {position: absolute;top: 0;left: 0;width: 100%;min-height: 100vh;padding-bottom: 80px;opacity: 0;transform: translateX(100%);z-index: 1;overflow-y: hidden;transition: transform 0.4s cubic-bezier(0.4,0,0.2,1), opacity 0.2s ease;}
-        .page.active {opacity: 1;transform: translateX(0);z-index: 10;}
-        .page.exiting {transform: translateX(-100%);opacity: 0;transition: transform 0.4s cubic-bezier(0.4,0,0.2,1), opacity 0.2s ease;}
-        .form-group {margin-bottom: 20px;}
-        .form-label {display: block;font-size: 16px;font-weight: 500;margin-bottom: 6px;color: var(--black);}
-        .form-input {width: 100%;padding: 14px 16px;border: 1px solid var(--gray-200);border-radius: var(--border-radius);font-size: 18px;background-color: var(--white);color: var(--black);transition: border-color 0.3s ease, transform 0.2s ease;}
-        .form-input:focus {border-color: var(--gray-700);transform: scale(1.02);}
-        .form-input::placeholder {color: var(--gray-500);font-size: 16px;}
-        .form-error {color: var(--gray-700);font-size: 12px;margin-top: 4px;min-height: 18px;transition: opacity 0.3s ease;}
-        .form-help {color: var(--gray-500);font-size: 12px;margin-top: 4px;}
-        .form-select {width: 100%;padding: 14px 16px;border: 1px solid var(--gray-200);border-radius: var(--border-radius);font-size: 18px;background-color: var(--white);color: var(--black);transition: border-color 0.3s ease, transform 0.2s ease;appearance: none;background-image: url('data:image/svg+xml;utf8,<svg fill="gray" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');background-repeat: no-repeat;background-position: right 16px center;}
-        .form-select:focus {border-color: var(--gray-700);transform: scale(1.02);}
-        .btn {display: inline-flex;align-items: center;justify-content: center;padding: 14px 20px;border-radius: var(--border-radius);font-weight: 500;cursor: pointer;border: none;font-size: 18px;transition: transform 0.2s ease, opacity 0.3s ease, background-color 0.3s ease;min-width: 48px;min-height: 48px;}
-        .btn:hover {transform: scale(1.05);opacity: 0.9;}
-        .btn:active {transform: scale(0.95);}
-        .btn-primary {background-color: var(--primary);color: var(--white);}
-        .btn-sos {background-color: var(--sos);color: var(--white);}
-        .btn-outline {background-color: var(--white);border: 1px solid var(--gray-200);color: var(--black);}
-        .btn-icon {background: none;border: none;color: var(--black);cursor: pointer;padding: 12px;display: flex;align-items: center;justify-content: center;border-radius: 50%;transition: background-color 0.3s ease, transform 0.2s ease;min-width: 48px;min-height: 48px;}
-        .btn-icon:hover {background-color: var(--gray-100);transform: scale(1.1);}
-        .btn-icon:active {transform: scale(0.9);}
-        .material-icons {font-size: 24px;transition: transform 0.2s ease;}
-        .auth-container {min-height: 100vh;display: flex;flex-direction: column;justify-content: center;padding: 32px 20px;background-color: var(--white);}
-        .auth-logo {text-align: center;margin-bottom: 40px;opacity: 0;transform: translateY(20px);animation: fadeInUp 0.5s ease forwards;}
-        .auth-logo h1 {font-size: 32px;font-weight: 700;color: var(--black);margin-bottom: 8px;}
-        .auth-logo p {color: var(--gray-500);font-size: 16px;}
-        .auth-link {color: var(--gray-700);text-decoration: none;font-weight: 500;transition: color 0.3s ease;}
-        .auth-link:hover {color: var(--black);text-decoration: underline;}
-        .bottom-nav {position: fixed;bottom: 0;left: 0;right: 0;height: 80px;background-color: var(--white);display: flex;justify-content: space-around;align-items: center;box-shadow: 0 -1px 6px rgba(0,0,0,0.1);z-index: 100;transition: transform 0.4s cubic-bezier(0.4,0,0.2,1);}
-        .bottom-nav.hidden {transform: translateY(100%);}
-        .bottom-nav-item {display: flex;flex-direction: column;align-items: center;justify-content: center;text-decoration: none;color: var(--gray-500);font-size: 10px;padding: 8px 0;width: 25%;transition: color 0.3s ease, transform 0.2s ease;position: relative;}
-        .bottom-nav-item:hover {transform: scale(1.1);}
-        .bottom-nav-item.active {color: var(--black);}
-        .bottom-nav-item .material-icons {font-size: 28px;margin-bottom: 4px;}
-        .sos-nav-item {width: 50%;margin-top: -32px;}
-        .sos-nav-button {background: linear-gradient(135deg, var(--sos), #B71C1C);color: var(--white);width: 72px;height: 72px;border-radius: 50%;display: flex;align-items: center;justify-content: center;margin-bottom: 4px;box-shadow: 0 6px 16px rgba(211,47,47,0.4);transition: transform 0.3s ease, box-shadow 0.3s ease;}
-        .sos-nav-button:hover {transform: scale(1.15);box-shadow: 0 8px 20px rgba(211,47,47,0.6);opacity: 0.9;}
-        .sos-nav-button:active {transform: scale(0.95);}
-        .sos-nav-button .material-icons {font-size: 28px;margin-bottom: 0;}
-        .map-container {position: fixed;top: 0;left: 0;right: 0;bottom: 80px;width: 100%;height: calc(100vh - 80px);overflow: hidden;z-index: 0;}
-        #map {position: absolute;top: 0;bottom: 0;left: 0;right: 0;z-index: 1;touch-action: none;}
-        .map-search-container {position: absolute;top: 20px;left: 20px;right: 20px;background: var(--white);border-radius: 12px;padding: 8px;box-shadow: 0 2px 8px rgba(0,0,0,0.1);z-index: 100;transition: transform 0.4s cubic-bezier(0.4,0,0.2,1);opacity: 0;transform: translateY(-20px);animation: slideInDown 0.5s ease forwards;}
-        .map-search {display: flex;align-items: center;padding: 4px;}
-        .search-icon {display: flex;align-items: center;justify-content: center;width: 48px;height: 48px;color: var(--gray-500);transition: transform 0.2s ease;}
-        .search-icon:hover {transform: scale(1.1);}
-        .map-search input {flex: 1;padding: 12px;border: none;font-size: 18px;background-color: transparent;color: var(--black);transition: transform 0.2s ease;}
-        .map-search input:focus {transform: scale(1.02);}
-        .map-search input::placeholder {color: var(--gray-500);}
-        .location-btn {width: 48px;height: 48px;background: none;border: none;display: flex;align-items: center;justify-content: center;cursor: pointer;color: var(--gray-500);transition: transform 0.2s ease;}
-        .location-btn:hover {transform: scale(1.1);}
-        .location-btn:active {transform: scale(0.9);}
-        .route-search-btn {width: 100%;height: 48px;background-color: var(--primary);color: var(--white);border: none;border-radius: var(--border-radius);cursor: pointer;display: flex;align-items: center;justify-content: center;font-weight: 500;transition: transform 0.2s ease, background-color 0.3s ease;}
-        .route-search-btn:hover {transform: scale(1.05);background-color: #2b4ca8;}
-        .route-search-btn:active {transform: scale(0.95);}
-        .route-search-btn .material-icons {margin-right: 8px;}
-        .route-btn-text {font-size: 18px;}
-        .location-info-handle {position: fixed;bottom: 85px;left: 50%;transform: translateX(-50%);width: 40px;height: 5px;background-color: var(--gray-300);border-radius: 2.5px;cursor: pointer;z-index: 151;transition: background-color 0.3s ease;}
-        .location-info-handle:hover {background-color: var(--gray-500);}
-        .location-info {position: fixed;left: 0;right: 0;bottom: 80px;background: var(--white);border-radius: 16px 16px 0 0;padding: 24px 16px 80px 16px;box-shadow: 0 -2px 8px rgba(0,0,0,0.1);z-index: 150;height: auto;max-height: calc(70vh - 80px);overflow-y: auto;-ms-overflow-style: none;scrollbar-width: thin;scrollbar-color: var(--gray-700) var(--gray-200);transition: transform 0.4s cubic-bezier(0.4,0,0.2,1);}
-        .location-info::-webkit-scrollbar {width: 8px;}
-        .location-info::-webkit-scrollbar-track {background: var(--gray-200);border-radius: 4px;}
-        .location-info::-webkit-scrollbar-thumb {background: var(--gray-700);border-radius: 4px;}
-        .location-info::-webkit-scrollbar-thumb:hover {background: #555;}
-        .location-info.visible {transform: translateY(0);animation: slideUp 0.4s ease forwards;}
-        .location-info:not(.visible) {transform: translateY(100%);animation: slideDown 0.4s ease forwards;}
-        .location-info h3 {font-size: 20px;font-weight: 600;margin-bottom: 8px;}
-        .location-info p {font-size: 14px;color: var(--gray-500);margin-bottom: 12px;}
-        .location-actions {display: flex;gap: 12px;justify-content: space-between;}
-        .route-options {margin: 12px 0;}
-        .route-mode-selector {display: flex;justify-content: center;background-color: var(--gray-100);border-radius: var(--border-radius);padding: 4px;width: fit-content;margin: 0 auto 12px;border: 1px solid var(--gray-200);}
-        .route-mode-btn {border: none;background: none;border-radius: 6px;width: 48px;height: 48px;display: flex;align-items: center;justify-content: center;margin: 0 4px;cursor: pointer;color: var(--gray-500);transition: background-color 0.3s ease, transform 0.2s ease;}
-        .route-mode-btn:hover {transform: scale(1.1);}
-        .route-mode-btn.active {background-color: var(--white);box-shadow: 0 1px 3px rgba(0,0,0,0.1);color: var(--black);}
-        .route-mode-btn:active {transform: scale(0.9);}
-        .route-mode-btn .material-icons {font-size: 24px;}
-        .alternative-routes {margin-top: 12px;opacity: 0;transform: translateY(20px);animation: fadeInUp 0.5s ease forwards;}
-        .route-option {display: flex;align-items: center;padding: 10px;border: 1px solid var(--gray-200);border-radius: var(--border-radius);margin-bottom: 8px;cursor: pointer;background-color: var(--white);transition: transform 0.3s ease, border-color 0.3s ease, background-color 0.3s ease;}
-        .route-option:hover {transform: translateX(5px);background-color: var(--gray-100);}
-        .route-option.active {border-color: var(--gray-700);background-color: var(--gray-100);}
-        .route-option-icon {background-color: var(--white);width: 36px;height: 36px;border-radius: 50%;display: flex;align-items: center;justify-content: center;margin-right: 12px;color: var(--black);transition: transform 0.2s ease;}
-        .route-option:hover .route-option-icon {transform: rotate(360deg);}
-        .route-option-info {flex: 1;}
-        .route-option-title {font-weight: 500;margin-bottom: 2px;color: var(--black);}
-        .route-option-details {font-size: 12px;color: var(--gray-500);}
-        .route-details {position: fixed;top: 0;right: -350px;width: 320px;height: calc(100vh - 80px);background-color: var(--white);z-index: 200;box-shadow: -2px 0 8px rgba(0,0,0,0.1);padding: 20px;display: flex;flex-direction: column;border-left: 1px solid var(--gray-200);overflow-y: auto;transition: transform 0.4s cubic-bezier(0.4,0,0.2,1);}
-        .route-details.visible {transform: translateX(0);}
-        .route-details:not(.visible) {transform: translateX(100%);animation: slideRight 0.4s ease forwards;}
-        .route-details-header {display: flex;justify-content: space-between;align-items: center;margin-bottom: 16px;padding-bottom: 8px;border-bottom: 1px solid var(--gray-200);}
-        .route-details-content {flex: 1;overflow-y: auto;}
-        .step-item {padding: 12px;border-bottom: 1px solid var(--gray-200);display: flex;transition: background-color 0.3s ease, transform 0.3s ease;opacity: 0;transform: translateX(20px);animation: slideInLeft 0.3s ease forwards;animation-delay: calc(var(--step-index) * 0.1s);}
-        .step-item:hover {background-color: var(--gray-100);transform: translateX(5px);}
-        .step-item:last-child {border-bottom: none;}
-        .step-number {width: 24px;height: 24px;border-radius: 50%;background-color: var(--gray-700);color: var(--white);display: flex;align-items: center;justify-content: center;font-size: 12px;margin-right: 12px;flex-shrink: 0;transition: transform 0.2s ease;}
-        .step-item:hover .step-number {transform: scale(1.1);}
-        .step-content {flex: 1;color: var(--black);}
-        .route-progress {background-color: var(--gray-100);border-radius: var(--border-radius);padding: 12px;margin-bottom: 12px;border: 1px solid var(--gray-200);opacity: 0;transform: translateY(20px);animation: fadeInUp 0.5s ease forwards;}
-        .progress-bar-container {height: 6px;background-color: var(--gray-200);border-radius: 3px;margin: 8px 0;overflow: hidden;}
-        .progress-bar {height: 100%;background-color: var(--gray-700);width: 0%;transition: width 0.5s ease-in-out;}
-        .eta-info {display: flex;justify-content: space-between;font-size: 12px;color: var(--gray-500);}
-        .profile-container {padding: 20px;height: calc(100vh - 80px);overflow-y: auto;background-color: var(--gray-100);}
-        .profile-header {background-color: var(--white);padding: 20px;border-radius: var(--border-radius);margin-bottom: 20px;box-shadow: 0 2px 6px rgba(0,0,0,0.05);display: flex;align-items: center;opacity: 0;transform: translateY(20px);animation: fadeInUp 0.5s ease forwards;}
-        .profile-avatar {width: 60px;height: 60px;background-color: var(--primary);color: var(--white);border-radius: 50%;display: flex;align-items: center;justify-content: center;margin-right: 16px;font-size: 28px;transition: transform 0.3s ease;}
-        .profile-header:hover .profile-avatar {transform: rotate(360deg);}
-        .profile-info {flex: 1;}
-        .profile-name {font-size: 22px;font-weight: 600;color: var(--black);margin-bottom: 4px;}
-        .profile-email {font-size: 14px;color: var(--gray-500);}
-        .profile-section {background-color: var(--white);border-radius: var(--border-radius);padding: 20px;margin-bottom: 20px;box-shadow: 0 2px 6px rgba(0,0,0,0.05);opacity: 0;transform: translateY(20px);animation: fadeInUp 0.5s ease forwards;animation-delay: calc(var(--section-index) * 0.1s);}
-        .section-title {font-size: 18px;font-weight: 600;color: var(--black);margin-bottom: 12px;}
-        .guardian-key {background-color: var(--gray-100);padding: 12px;border-radius: 8px;font-size: 16px;font-weight: 500;text-align: center;color: var(--black);border: 1px dashed var(--gray-200);word-break: break-all;transition: background-color 0.3s ease;}
-        .guardian-key:hover {background-color: var(--gray-200);}
-        .contacts-list {max-height: 250px;overflow-y: auto;}
-        .contact-item {display: flex;align-items: center;justify-content: space-between;padding: 12px 0;border-bottom: 1px solid var(--gray-200);transition: transform 0.3s ease, background-color 0.3s ease;opacity: 0;animation: fadeIn 0.3s ease forwards;animation-delay: calc(var(--contact-index) * 0.1s);}
-        .contact-item:hover {transform: translateX(5px);background-color: var(--gray-100);}
-        .contact-item:last-child {border-bottom: none;}
-        .contact-info {display: flex;align-items: center;flex: 1;}
-        .contact-avatar {width: 40px;height: 40px;background-color: var(--gray-200);border-radius: 50%;display: flex;align-items: center;justify-content: center;margin-right: 12px;color: var(--black);transition: transform 0.2s ease;}
-        .contact-item:hover .contact-avatar {transform: scale(1.1);}
-        .contact-details h4 {font-size: 16px;font-weight: 500;color: var(--black);margin-bottom: 2px;}
-        .contact-relation {font-size: 12px;color: var(--gray-500);}
-        .contact-actions button {color: var(--gray-500);}
-        .contact-actions button:hover {color: var(--gray-700);}
-        .empty-state {padding: 20px;text-align: center;color: var(--gray-500);opacity: 0;animation: fadeIn 0.5s ease forwards;}
-        .empty-icon {font-size: 40px;margin-bottom: 8px;transition: transform 0.3s ease;}
-        .empty-state:hover .empty-icon {transform: scale(1.2);}
-        .settings-item {display: flex;align-items: center;padding: 12px 0;cursor: pointer;transition: transform 0.3s ease, background-color 0.3s ease;}
-        .settings-item:hover {transform: translateX(5px);background-color: var(--gray-100);}
-        .settings-item .material-icons {margin-right: 12px;font-size: 24px;}
-        .modal-overlay {position: fixed;top: 0;left: 0;right: 0;bottom: 0;background-color: rgba(0,0,0,0.6);display: flex;align-items: flex-end;justify-content: center;z-index: 1000;opacity: 0;visibility: hidden;transition: opacity 0.4s ease-in-out;}
-        .modal-overlay.active {opacity: 1;visibility: visible;}
-        .modal {background-color: var(--white);border-radius: 16px 16px 0 0;width: 100%;transform: translateY(100%);transition: transform 0.4s cubic-bezier(0.4,0,0.2,1);}
-        .modal-overlay.active .modal {transform: translateY(0);animation: slideUp 0.4s ease forwards;}
-        .modal-overlay:not(.active) .modal {transform: translateY(100%);animation: slideDown 0.4s ease forwards;}
-        .modal-header {padding: 16px;border-bottom: 1px solid var(--gray-200);display: flex;align-items: center;justify-content: space-between;}
-        .modal-body {padding: 20px 16px;}
-        .modal-footer {padding: 16px;border-top: 1px solid var(--gray-200);display: flex;justify-content: flex-end;gap: 12px;}
-        #sos-confirm-modal .modal {top: 0;bottom: 0;border-radius: 0;background: var(--white);}
-        .success-modal .modal-body {display: flex;flex-direction: column;align-items: center;text-align: center;padding: 32px 24px;}
-        .success-icon {width: 80px;height: 80px;background-color: var(--gray-100);color: var(--black);border-radius: 50%;display: flex;align-items: center;justify-content: center;margin-bottom: 16px;transition: transform 0.3s ease;}
-        .success-icon:hover {transform: scale(1.1);}
-        .success-icon .material-icons {font-size: 40px;}
-        .warning-icon {width: 80px;height: 80px;background-color: var(--gray-100);color: var(--black);border-radius: 50%;display: flex;align-items: center;justify-content: center;margin: 0 auto 16px;transition: transform 0.3s ease;animation: pulse 1.5s infinite;}
-        .warning-icon .material-icons {font-size: 40px;}
-        .toast-container {position: fixed;bottom: calc(80px + 16px);left: 20px;right: 20px;display: flex;flex-direction: column;gap: 8px;z-index: 2000;}
-        .toast {background-color: var(--white);border-radius: var(--border-radius);padding: 16px;box-shadow: 0 4px 12px rgba(0,0,0,0.1);display: flex;align-items: center;transform: translateY(100%);opacity: 0;transition: transform 0.4s cubic-bezier(0.4,0,0.2,1), opacity 0.4s ease-in-out;}
-        .toast.show {transform: translateY(0);opacity: 1;animation: slideInUp 0.4s ease forwards;}
-        .toast-error {border-left: 4px solid var(--gray-700);}
-        .toast-icon {margin-right: 12px;color: var(--black);transition: transform 0.3s ease;}
-        .toast.show .toast-icon {transform: rotate(360deg);}
-        .toast-content {flex: 1;}
-        .toast-title {font-weight: 500;margin-bottom: 2px;color: var(--black);}
-        .toast-message {font-size: 14px;color: var(--gray-500);}
-        .emergency-notification {position: fixed;top: -100px;left: 20px;right: 20px;background-color: var(--sos);color: var(--white);border-radius: var(--border-radius);padding: 16px;box-shadow: 0 0 10px rgba(211,47,47,0.5);z-index: 3000;display: flex;align-items: center;justify-content: space-between;transition: top 0.4s ease-in-out;}
-        .emergency-notification.active {top: 20px;animation: slideDown 0.4s ease forwards;}
-        .emergency-notification:not(.active) {top: -100px;animation: slideDown 0.4s ease forwards;animation-direction: reverse;}
-        .emergency-notification .notification-icon {margin-right: 12px;animation: pulse 1.5s infinite;}
-        .emergency-notification .notification-content {flex: 1;}
-        .emergency-notification .notification-title {font-weight: 600;margin-bottom: 4px;}
-        .emergency-notification .notification-message {font-size: 14px;}
-        .emergency-notification .notification-actions {display: flex;gap: 8px;}
-        .emergency-notification .notification-close {background: none;border: none;color: var(--white);cursor: pointer;padding: 8px;transition: transform 0.2s ease;}
-        .emergency-notification .notification-close:hover {transform: scale(1.1);}
-        .notification-btn {background-color: rgba(255,255,255,0.2);border: none;color: var(--white);padding: 8px 12px;border-radius: 4px;cursor: pointer;transition: background-color 0.3s ease, transform 0.2s ease;}
-        .notification-btn:hover {background-color: rgba(255,255,255,0.3);transform: scale(1.05);}
-        @keyframes fadeInUp {from {opacity: 0;transform: translateY(20px);}to {opacity: 1;transform: translateY(0);}}
-        @keyframes fadeIn {from {opacity: 0;}to {opacity: 1;}}
-        @keyframes slideInDown {from {transform: translateY(-20px);opacity: 0;}to {transform: translateY(0);opacity: 1;}}
-        @keyframes slideUp {from {transform: translateY(100%);}to {transform: translateY(0);}}
-        @keyframes slideInLeft {from {transform: translateX(20px);opacity: 0;}to {transform: translateX(0);opacity: 1;}}
-        @keyframes slideDown {from {transform: translateY(0);opacity: 1;}to {transform: translateY(100%);opacity: 0;}}
-        @keyframes slideRight {from {transform: translateX(0);opacity: 1;}to {transform: translateX(100%);opacity: 0;}}
-        @keyframes pulse {0% {transform: scale(1);}50% {transform: scale(1.1);}100% {transform: scale(1);}}
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #ffffff 0%, #f5f5f5 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+            overflow: hidden;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 0.75rem 1.25rem; /* Slightly reduced width */
+            border-radius: 10px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15), inset 0 0 8px rgba(0, 0, 0, 0.05);
+            backdrop-filter: blur(8px);
+            transition: transform 0.2s ease;
+        }
+
+        .card:hover {
+            transform: scale(1.03);
+        }
+
+        .loader {
+            color: #222222;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 700;
+            font-size: 22px;
+            height: 36px;
+            padding: 8px 6px; /* Reduced horizontal padding */
+            display: flex;
+            align-items: center;
+            gap: 2px; /* Tighter gap between SOS and words */
+            border-radius: 6px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .loader::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.08), transparent);
+            animation: shimmer 1.5s infinite;
+        }
+
+        .loader p {
+            margin: 0;
+            line-height: 36px;
+            text-shadow: 0 0 4px rgba(0, 0, 0, 0.3);
+            animation: pulse 2s infinite ease-in-out;
+        }
+
+        .words {
+            overflow: hidden;
+            height: 36px;
+            line-height: 36px;
+            position: relative;
+            flex: 1;
+        }
+
+        .words::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(
+                to bottom,
+                rgba(255, 255, 255, 0.9) 10%,
+                transparent 30%,
+                transparent 70%,
+                rgba(255, 255, 255, 0.9) 90%
+            );
+            z-index: 10;
+        }
+
+        .word {
+            display: block;
+            height: 100%;
+            padding-left: 4px; /* Reduced padding for closeness */
+            color: #d81b60;
+            text-shadow: 0 0 6px rgba(216, 27, 96, 0.5);
+            animation: spin 2s infinite cubic-bezier(0.5, 0, 0.5, 1);
+            line-height: 36px;
+            font-weight: 700;
+            transform: translateY(0);
+            opacity: 0;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: translateY(100%) scale(0.9);
+                opacity: 0;
+            }
+            10%, 30% {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+            40% {
+                transform: translateY(-100%) scale(0.9);
+                opacity: 0;
+            }
+            50%, 70% {
+                transform: translateY(-100%) scale(1);
+                opacity: 1;
+            }
+            80% {
+                transform: translateY(-200%) scale(0.9);
+                opacity: 0;
+            }
+            90%, 100% {
+                transform: translateY(-200%) scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes shimmer {
+            0% {
+                transform: translateX(-100%);
+            }
+            100% {
+                transform: translateX(100%);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.05);
+                opacity: 0.95;
+            }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 600px) {
+            .card {
+                padding: 0.5rem 0.75rem;
+            }
+            .loader {
+                font-size: 18px;
+                height: 32px;
+                padding: 6px 4px;
+                gap: 1px; /* Even tighter on mobile */
+            }
+            .words {
+                height: 32px;
+                line-height: 32px;
+            }
+            .word {
+                line-height: 32px;
+                padding-left: 3px;
+            }
+        }
     </style>
 </head>
 <body>
-    <div id="login-page" class="page active">
-        <div class="auth-container">
-            <div class="auth-logo">
-                <h1>SOSecure</h1>
-                <p>Your personal safety companion</p>
-            </div>
-            <form id="login-form" class="auth-form" autocomplete="off">
-                <div class="form-group">
-                    <label class="form-label" for="login-email">Email</label>
-                    <input type="email" id="login-email" class="form-input" placeholder="Enter your email" required autocomplete="off">
-                    <div class="form-error" id="login-email-error"></div>
-                </div>
-                <div class="form-group">
-                    <label class="form-label" for="login-password">Password</label>
-                    <input type="password" id="login-password" class="form-input" placeholder="Enter your password" required autocomplete="off">
-                    <div class="form-error" id="login-password-error"></div>
-                </div>
-                <button type="submit" class="btn btn-primary w-full mb-4" id="login-btn" aria-label="Log in to your account">Login</button>
-            </form>
-            <p class="text-center">Don't have an account? <a href="#" class="auth-link" id="go-to-signup">Sign up</a></p>
-        </div>
-    </div>
-    <div id="signup-page" class="page">
-        <div class="auth-container">
-            <div class="auth-logo">
-                <h1>SOSecure</h1>
-                <p>Create your account</p>
-            </div>
-            <form id="signup-form" class="auth-form" autocomplete="off">
-                <div class="form-group">
-                    <label class="form-label" for="signup-fullname">Full Name</label>
-                    <input type="text" id="signup-fullname" class="form-input" placeholder="Enter your full name" required autocomplete="off">
-                    <div class="form-error" id="signup-fullname-error"></div>
-                </div>
-                <div class="form-group">
-                    <label class="form-label" for="signup-email">Email</label>
-                    <input type="email" id="signup-email" class="form-input" placeholder="Enter your email" required autocomplete="off">
-                    <div class="form-error" id="signup-email-error"></div>
-                </div>
-                <div class="form-group">
-                    <label class="form-label" for="signup-phone">Phone Number</label>
-                    <input type="tel" id="signup-phone" class="form-input" placeholder="Enter your phone number" required autocomplete="off">
-                    <div class="form-error" id="signup-phone-error"></div>
-                </div>
-                <div class="form-group">
-                    <label class="form-label" for="signup-password">Password</label>
-                    <input type="password" id="signup-password" class="form-input" placeholder="Create a password" required autocomplete="off">
-                    <div class="form-error" id="signup-password-error"></div>
-                </div>
-                <button type="submit" class="btn btn-primary w-full mb-4" id="signup-btn" aria-label="Create your account">Sign Up</button>
-            </form>
-            <p class="text-center">Already have an account? <a href="#" class="auth-link" id="go-to-login">Login</a></p>
-        </div>
-    </div>
-    <div id="home-page" class="page">
-        <div class="map-container">
-            <div id="map"></div>
-            <div class="map-search-container">
-                <div class="map-search">
-                    <div class="search-icon"><span class="material-icons">place</span></div>
-                    <input type="search" id="origin-search-input" placeholder="Enter starting point..." autocomplete="off">
-                    <button id="current-location-origin-btn" class="location-btn" title="Use current location" aria-label="Use current location as starting point"><span class="material-icons">my_location</span></button>
-                </div>
-                <div class="map-search">
-                    <div class="search-icon"><span class="material-icons">flag</span></div>
-                    <input type="search" id="destination-search-input" placeholder="Enter destination" autocomplete="street-address">
-                    <button id="current-location-dest-btn" class="location-btn" title="Use current location" aria-label="Use current location as destination"><span class="material-icons">my_location</span></button>
-                </div>
-                <div class="route-search-container">
-                    <button id="route-search-btn" class="route-search-btn" aria-label="Find a safe route"><span class="material-icons">directions</span><span class="route-btn-text">Find Safe Route</span></button>
-                </div>
-            </div>
-            <div class="location-info-handle" id="location-info-handle" aria-label="Toggle location info"></div>
-            <div class="location-info pt-6" id="location-info">
-                <h3 id="location-name">Current Location</h3>
-                <p id="location-address" class="text-gray">Loading address...</p>
-                <div class="route-options">
-                    <div class="route-mode-selector">
-                        <button id="walking-mode" class="route-mode-btn active" aria-label="Walking mode"><span class="material-icons">directions_walk</span></button>
-                        <button id="driving-mode" class="route-mode-btn" aria-label="Driving mode"><span class="material-icons">directions_car</span></button>
-                    </div>
-                </div>
-                <div class="route-progress" id="route-progress" style="display: none;">
-                    <h4>Estimated Arrival</h4>
-                    <div class="progress-bar-container"><div class="progress-bar" id="route-progress-bar"></div></div>
-                    <div class="eta-info"><span id="route-current-time">Starting...</span><span id="route-eta">ETA: Calculating...</span></div>
-                </div>
-                <div class="alternative-routes" id="alternative-routes" style="display: none;">
-                    <h4>Alternative Routes</h4>
-                    <div id="route-alternatives-container"></div>
-                </div>
-                <div class="location-actions">
-                    <button class="btn btn-outline" id="share-location-btn" aria-label="Share location"><span class="material-icons mr-2">share</span>Share</button>
-                    <button class="btn btn-primary" id="start-route-btn" aria-label="Start route"><span class="material-icons mr-2">play_arrow</span>Start</button>
-                    <button class="btn btn-outline" id="route-details-btn" aria-label="View route details"><span class="material-icons mr-2">list</span>Details</button>
-                </div>
-            </div>
-            <div class="route-details" id="route-details-panel">
-                <div class="route-details-header">
-                    <h3>Route Details</h3>
-                    <button id="close-route-details" class="btn-icon" aria-label="Close route details"><span class="material-icons">close</span></button>
-                </div>
-                <div class="route-details-content" id="route-details-content"></div>
+    <div class="card">
+        <div class="loader">
+            <p>SOS</p>
+            <div class="words">
+                <span class="word">ecure</span>
+                <span class="word">afe</span>
+                <span class="word">trong</span>
             </div>
         </div>
     </div>
-    <div id="profile-page" class="page">
-        <div class="profile-container">
-            <div class="profile-header">
-                <div class="profile-avatar">
-                    <span class="material-icons">person</span>
-                </div>
-                <div class="profile-info">
-                    <h2 id="profile-name" class="profile-name">Loading...</h2>
-                    <p id="profile-email" class="profile-email">loading@example.com</p>
-                </div>
-            </div>
-            <div class="profile-section" style="--section-index: 1;">
-                <div class="section-title">Your SOSecure Key</div>
-                <div class="guardian-key" id="guardian-key">Loading...</div>
-                <button class="btn btn-outline mt-2 w-full" id="copy-key-btn" aria-label="Copy SOSecure key"><span class="material-icons mr-2">content_copy</span>Copy Key</button>
-            </div>
-            <div class="profile-section" style="--section-index: 2;">
-                <div class="flex justify-between items-center mb-2">
-                    <div class="section-title">Emergency Contacts</div>
-                    <button id="add-contact-btn" class="btn btn-primary" aria-label="Add emergency contact"><span class="material-icons mr-2">add</span>Add</button>
-                </div>
-                <div id="contacts-list" class="contacts-list">
-                    <div class="empty-state" id="empty-contacts">
-                        <span class="material-icons empty-icon">group</span>
-                        <p>No emergency contacts added yet</p>
-                    </div>
-                </div>
-            </div>
-            <div class="profile-section" style="--section-index: 3;">
-                <div class="section-title">Settings</div>
-                <div class="settings-item" id="custom-sos-phrase-btn" aria-label="Set custom SOS phrase">
-                    <span class="material-icons">mic</span>
-                    <span>Custom SOS Phrase</span>
-                </div>
-                <div class="settings-item" id="logout-btn" aria-label="Log out">
-                    <span class="material-icons">logout</span>
-                    <span>Logout</span>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div id="bottom-nav" class="bottom-nav hidden">
-        <a href="#" class="bottom-nav-item" data-page="home" aria-label="Go to map page"><span class="material-icons">map</span><span>Map</span></a>
-        <a href="#" class="bottom-nav-item sos-nav-item" data-page="sos">
-            <div class="sos-nav-button" id="sos-button" aria-label="Trigger SOS Alert"><span class="material-icons" id="sos-icon">emergency</span></div>
-            <span>SOS</span>
-        </a>
-        <a href="#" class="bottom-nav-item" data-page="profile" aria-label="Go to profile page"><span class="material-icons">person</span><span>Profile</span></a>
-    </div>
-    <div id="add-contact-modal" class="modal-overlay" role="dialog" aria-labelledby="add-contact-title">
-        <div class="modal">
-            <div class="modal-header">
-                <h3 class="modal-title" id="add-contact-title">Add Emergency Contact</h3>
-                <button class="modal-close" id="close-add-contact" aria-label="Close add contact modal"><span class="material-icons">close</span></button>
-            </div>
-            <form id="add-contact-form" autocomplete="off">
-                <div class="modal-body">
-                    <div class="form-group">
-                        <label class="form-label" for="contact-guardian-key">SOSecure Key</label>
-                        <input type="text" id="contact-guardian-key" class="form-input" placeholder="Enter SOSecure Key" required autocomplete="off">
-                        <div class="form-error" id="contact-guardian-key-error"></div>
-                        <p class="form-help">Ask your emergency contact for their SOSecure key</p>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="contact-relation">Relation</label>
-                        <select id="contact-relation" class="form-select" required>
-                            <option value="">Select relation</option>
-                            <option value="Family">Family</option>
-                            <option value="Friend">Friend</option>
-                            <option value="Colleague">Colleague</option>
-                            <option value="Other">Other</option>
-                        </select>
-                        <div class="form-error" id="contact-relation-error"></div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-outline" id="cancel-add-contact" aria-label="Cancel adding contact">Cancel</button>
-                    <button type="submit" class="btn btn-primary" id="submit-add-contact" aria-label="Add contact">Add Contact</button>
-                </div>
-            </form>
-        </div>
-    </div>
-    <div id="sos-confirm-modal" class="modal-overlay" role="dialog" aria-labelledby="sos-confirm-title">
-        <div class="modal">
-            <div class="modal-header">
-                <h3 class="modal-title" id="sos-confirm-title">SOS Alert Initiated</h3>
-                <button class="modal-close" id="close-sos-confirm" aria-label="Close SOS confirmation"><span class="material-icons">close</span></button>
-            </div>
-            <div class="modal-body">
-                <div class="warning-icon mb-4"><span class="material-icons">warning</span></div>
-                <p id="sos-timer">Time remaining: 10s</p>
-                <p class="mt-2">Enter password to cancel SOS alert:</p>
-                <input type="password" id="sos-password" class="form-input mt-2" placeholder="Enter password" autocomplete="off">
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-outline" id="cancel-sos" aria-label="Cancel SOS">Cancel SOS</button>
-                <button class="btn btn-sos" id="confirm-sos" aria-label="Send SOS now">Send Now</button>
-            </div>
-        </div>
-    </div>
-    <div id="sos-end-modal" class="modal-overlay" role="dialog" aria-labelledby="sos-end-title">
-        <div class="modal">
-            <div class="modal-header">
-                <h3 class="modal-title" id="sos-end-title">End SOS Alert</h3>
-                <button class="modal-close" id="close-sos-end" aria-label="Close SOS end modal"><span class="material-icons">close</span></button>
-            </div>
-            <div class="modal-body">
-                <div class="warning-icon mb-4"><span class="material-icons">stop</span></div>
-                <p class="mt-2">Enter password to end SOS alert:</p>
-                <input type="password" id="sos-end-password" class="form-input mt-2" placeholder="Enter password" autocomplete="off">
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-outline" id="cancel-end-sos" aria-label="Cancel ending SOS">Cancel</button>
-                <button class="btn btn-primary" id="confirm-end-sos" aria-label="End SOS">End SOS</button>
-            </div>
-        </div>
-    </div>
-    <div id="custom-sos-modal" class="modal-overlay" role="dialog" aria-labelledby="custom-sos-title">
-        <div class="modal">
-            <div class="modal-header">
-                <h3 class="modal-title" id="custom-sos-title">Set Custom SOS Phrase</h3>
-                <button class="modal-close" id="close-custom-sos" aria-label="Close custom SOS modal"><span class="material-icons">close</span></button>
-            </div>
-            <form id="custom-sos-form" autocomplete="off">
-                <div class="modal-body">
-                    <div class="form-group">
-                        <label class="form-label" for="custom-sos-phrase">SOS Trigger Phrase</label>
-                        <input type="text" id="custom-sos-phrase" class="form-input" placeholder="Enter short phrase (max 5 words)" required autocomplete="off">
-                        <div class="form-error" id="custom-sos-error"></div>
-                        <p class="form-help">Say this phrase to trigger SOS (e.g., "Help me now")</p>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-outline" id="cancel-custom-sos" aria-label="Cancel setting SOS phrase">Cancel</button>
-                    <button type="submit" class="btn btn-primary" id="save-custom-sos" aria-label="Save SOS phrase">Save</button>
-                </div>
-            </form>
-        </div>
-    </div>
-    <div class="toast-container" id="toast-container"></div>
-    <div id="emergency-notification" class="emergency-notification">
-        <div class="notification-icon"><span class="material-icons">warning</span></div>
-        <div class="notification-content">
-            <div class="notification-title">SOS Alert</div>
-            <div class="notification-message" id="sos-notification-message"></div>
-        </div>
-        <div class="notification-actions">
-            <button id="navigate-to-btn" class="notification-btn" aria-label="Navigate to SOS location">Navigate To</button>
-            <button id="close-emergency-notification" class="notification-close" aria-label="Close emergency notification"><span class="material-icons">close</span></button>
-        </div>
-    </div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/2.4.5/purify.min.js"></script>
-    <script>
-        const firebaseConfig = {
-    apiKey: "AIzaSyAv2LUHlRxvadYD2ok9zs426TxIEpXCGWA",
-    authDomain: "guardian-4a206.firebaseapp.com",
-    projectId: "guardian-4a206",
-    storageBucket: "guardian-4a206.firebasestorage.app",
-    messagingSenderId: "249797346737",
-    appId: "1:249797346737:web:29edab4d045345742d6990",
-    measurementId: "G-X35KJKEPEB"
-};
-
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
-
-// DOM Elements
-const pages = document.querySelectorAll('.page');
-const bottomNav = document.getElementById('bottom-nav');
-const navItems = document.querySelectorAll('.bottom-nav-item');
-const loginForm = document.getElementById('login-form');
-const loginEmail = document.getElementById('login-email');
-const loginPassword = document.getElementById('login-password');
-const signupForm = document.getElementById('signup-form');
-const signupFullName = document.getElementById('signup-fullname');
-const signupEmail = document.getElementById('signup-email');
-const signupPhone = document.getElementById('signup-phone');
-const signupPassword = document.getElementById('signup-password');
-const goToSignupBtn = document.getElementById('go-to-signup');
-const goToLoginBtn = document.getElementById('go-to-login');
-const profileName = document.getElementById('profile-name');
-const profileEmail = document.getElementById('profile-email');
-const guardianKeyDisplay = document.getElementById('guardian-key');
-const copyKeyBtn = document.getElementById('copy-key-btn');
-const contactsList = document.getElementById('contacts-list');
-const emptyContacts = document.getElementById('empty-contacts');
-const addContactBtn = document.getElementById('add-contact-btn');
-const addContactModal = document.getElementById('add-contact-modal');
-const closeAddContactBtn = document.getElementById('close-add-contact');
-const cancelAddContactBtn = document.getElementById('cancel-add-contact');
-const addContactForm = document.getElementById('add-contact-form');
-const contactGuardianKey = document.getElementById('contact-guardian-key');
-const contactRelation = document.getElementById('contact-relation');
-const logoutBtn = document.getElementById('logout-btn');
-const sosButton = document.getElementById('sos-button');
-const sosIcon = document.getElementById('sos-icon');
-const sosConfirmModal = document.getElementById('sos-confirm-modal');
-const closeSosConfirmBtn = document.getElementById('close-sos-confirm');
-const cancelSosBtn = document.getElementById('cancel-sos');
-const confirmSosBtn = document.getElementById('confirm-sos');
-const sosEndModal = document.getElementById('sos-end-modal');
-const closeSosEndBtn = document.getElementById('close-sos-end');
-const cancelEndSosBtn = document.getElementById('cancel-end-sos');
-const confirmEndSosBtn = document.getElementById('confirm-end-sos');
-const emergencyNotification = document.getElementById('emergency-notification');
-const sosNotificationMessage = document.getElementById('sos-notification-message');
-const navigateToBtn = document.getElementById('navigate-to-btn');
-const closeEmergencyNotificationBtn = document.getElementById('close-emergency-notification');
-const mapElement = document.getElementById('map');
-const originSearchInput = document.getElementById('origin-search-input');
-const destinationSearchInput = document.getElementById('destination-search-input');
-const currentLocationOriginBtn = document.getElementById('current-location-origin-btn');
-const currentLocationDestBtn = document.getElementById('current-location-dest-btn');
-const routeSearchBtn = document.getElementById('route-search-btn');
-const locationInfo = document.getElementById('location-info');
-const locationInfoHandle = document.getElementById('location-info-handle');
-const locationName = document.getElementById('location-name');
-const locationAddress = document.getElementById('location-address');
-const shareLocationBtn = document.getElementById('share-location-btn');
-const startRouteBtn = document.getElementById('start-route-btn');
-const routeDetailsBtn = document.getElementById('route-details-btn');
-const routeDetailsPanel = document.getElementById('route-details-panel');
-const closeRouteDetailsBtn = document.getElementById('close-route-details');
-const routeDetailsContent = document.getElementById('route-details-content');
-const routeProgress = document.getElementById('route-progress');
-const routeProgressBar = document.getElementById('route-progress-bar');
-const routeCurrentTime = document.getElementById('route-current-time');
-const routeEta = document.getElementById('route-eta');
-const alternativeRoutes = document.getElementById('alternative-routes');
-const routeAlternativesContainer = document.getElementById('route-alternatives-container');
-const drivingModeBtn = document.getElementById('driving-mode');
-const walkingModeBtn = document.getElementById('walking-mode');
-const customSosBtn = document.getElementById('custom-sos-phrase-btn');
-const customSosModal = document.getElementById('custom-sos-modal');
-const closeCustomSosBtn = document.getElementById('close-custom-sos');
-const cancelCustomSosBtn = document.getElementById('cancel-custom-sos');
-const customSosForm = document.getElementById('custom-sos-form');
-const customSosInput = document.getElementById('custom-sos-phrase');
-
-// Global Variables
-let currentUser = null;
-let map = null;
-let userMarker = null;
-let originMarker = null;
-let destinationMarker = null;
-let currentLocation = null;
-let directionsService = null;
-let directionsRenderer = null;
-let routeMode = 'WALKING';
-let currentRoute = null;
-let alternativeRoutesData = [];
-let selectedRouteIndex = 0;
-let routeUpdateWatcher = null;
-let sosCountdown = 10;
-let sosInterval = null;
-let activeSosId = null;
-let lastSosLocation = null;
-let firstSosReceived = {};
-const sosPassword = "stop123";
-let customSosPhrase = 'start sos';
-let recognition = null;
-let isListening = false;
-let lastSosTriggerTime = 0;
-
-// Utility Functions
-function sanitizeInput(input) {
-    return DOMPurify.sanitize(input, {ALLOWED_TAGS: [], ALLOWED_ATTR: []});
-}
-
-function debounce(func, wait) {
-    let timeout;
-    return (...args) => {
-        clearTimeout(timeout);
-        timeout = setTimeout(() => func(...args), wait);
-    };
-}
-
-function handleError(err, context = 'Operation') {
-    console.error(JSON.stringify({ timestamp: new Date().toISOString(), message: `${context} Error`, error: err.message || err }));
-    showToast('error', `${context} Failed`, err.message || 'An unexpected error occurred');
-}
-
-async function withRetry(fn, retries = 3, delay = 1000) {
-    for (let i = 0; i < retries; i++) {
-        try {
-            return await fn();
-        } catch (err) {
-            if (i === retries - 1) throw err;
-            await new Promise(resolve => setTimeout(resolve, delay));
-        }
-    }
-}
-
-function loadGoogleMaps() {
-    if (window.google && window.google.maps) {
-        initMap();
-        return;
-    }
-    const script = document.createElement('script');
-    script.src = 'https://maps.googleapis.com/maps/api/js?key=AIzaSyA41wHVKnsb1RNhcftpHS5qNwvYz59nXIE&libraries=places&callback=initMap';
-    script.async = true;
-    script.defer = true;
-    document.head.appendChild(script);
-}
-
-// UI Functions
-function showPage(pageId) {
-    const currentActive = document.querySelector('.page.active');
-    if (currentActive && currentActive.id === `${pageId}-page`) {
-        if (pageId === 'home' && map) {
-            google.maps.event.trigger(map, 'resize');
-            if (currentLocation) map.setCenter(currentLocation);
-        }
-        return;
-    }
-    if (currentActive) {
-        currentActive.classList.add('exiting');
-        setTimeout(() => currentActive.classList.remove('active', 'exiting'), 400);
-    }
-    const page = document.getElementById(pageId + '-page');
-    if (!page) return;
-    page.classList.add('active');
-    const mapContainer = document.querySelector('.map-container');
-    if (pageId === 'home') {
-        mapContainer.style.display = 'block';
-        if (!map) loadGoogleMaps();
-        else {
-            google.maps.event.trigger(map, 'resize');
-            if (currentLocation) map.setCenter(currentLocation);
-        }
-    } else {
-        mapContainer.style.display = 'none';
-    }
-    navItems.forEach(item => item.classList.toggle('active', item.dataset.page === pageId));
-    if (pageId === 'login' || pageId === 'signup') {
-        bottomNav.classList.add('hidden');
-    } else if (currentUser) {
-        bottomNav.classList.remove('hidden');
-    }
-}
-
-function showToast(type, title, message, duration = 3000) {
-    const toast = document.createElement('div');
-    toast.className = `toast toast-${type}`;
-    toast.innerHTML = `<div class="toast-icon"><span class="material-icons">${type === 'success' ? 'check_circle' : 'error'}</span></div><div class="toast-content"><div class="toast-title">${sanitizeInput(title)}</div><div class="toast-message">${sanitizeInput(message)}</div></div>`;
-    const toastContainer = document.getElementById('toast-container');
-    toastContainer.appendChild(toast);
-    requestAnimationFrame(() => toast.classList.add('show'));
-    setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => toastContainer.removeChild(toast), 400);
-    }, duration);
-}
-
-function showModal(modal) {
-    if (!modal) return;
-    modal.classList.add('active');
-}
-
-function hideModal(modal) {
-    if (!modal) return;
-    modal.classList.remove('active');
-    setTimeout(() => {
-        modal.style.display = 'none';
-    }, 400);
-}
-
-function showEmergencyNotification(message, location) {
-    sosNotificationMessage.textContent = sanitizeInput(message);
-    emergencyNotification.classList.add('active');
-    lastSosLocation = location;
-    setTimeout(() => emergencyNotification.classList.remove('active'), 10000);
-}
-
-function generateGuardianKey() {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    let key = '';
-    for (let group = 0; group < 3; group++) {
-        for (let i = 0; i < 4; i++) {
-            key += chars.charAt(Math.floor(Math.random() * chars.length));
-        }
-        if (group < 2) key += '-';
-    }
-    return key;
-}
-
-// Authentication
-auth.onAuthStateChanged(user => {
-    currentUser = user;
-    if (user) {
-        showPage('home');
-        loadUserProfile();
-        loadCustomSosPhrase();
-        listenForSosAlerts();
-        initSpeechRecognition();
-    } else {
-        showPage('login');
-        if (recognition && isListening) {
-            recognition.stop();
-            isListening = false;
-        }
-        if (routeUpdateWatcher) {
-            clearInterval(routeUpdateWatcher);
-            routeUpdateWatcher = null;
-        }
-    }
-});
-
-loginForm.addEventListener('submit', async e => {
-    e.preventDefault();
-    try {
-        await withRetry(() => auth.signInWithEmailAndPassword(sanitizeInput(loginEmail.value), loginPassword.value));
-    } catch (err) {
-        handleError(err, 'Login');
-    }
-});
-
-signupForm.addEventListener('submit', async e => {
-    e.preventDefault();
-    const fullName = sanitizeInput(signupFullName.value.trim());
-    const email = sanitizeInput(signupEmail.value.trim());
-    const phone = sanitizeInput(signupPhone.value.trim());
-    const password = signupPassword.value;
-    const nameError = document.getElementById('signup-fullname-error');
-    const emailError = document.getElementById('signup-email-error');
-    const phoneError = document.getElementById('signup-phone-error');
-    const passwordError = document.getElementById('signup-password-error');
-    nameError.textContent = '';
-    emailError.textContent = '';
-    phoneError.textContent = '';
-    passwordError.textContent = '';
-    let isValid = true;
-    if (fullName.length < 2) {
-        nameError.textContent = 'Full name must be at least 2 characters';
-        isValid = false;
-    }
-    if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email)) {
-        emailError.textContent = 'Please enter a valid email';
-        isValid = false;
-    }
-    if (!/^\+?(\d{1,3})?[-.\s]?(\d{3})[-.\s]?(\d{3})[-.\s]?(\d{4})$/.test(phone)) {
-        phoneError.textContent = 'Phone must be in format: +123-456-7890 or 123-456-7890';
-        isValid = false;
-    }
-    if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/.test(password)) {
-        passwordError.textContent = 'Password must be 8+ chars with uppercase, lowercase, number, and special char';
-        isValid = false;
-    }
-    if (!isValid) return;
-    try {
-        const userCredential = await withRetry(() => auth.createUserWithEmailAndPassword(email, password));
-        const user = userCredential.user;
-        const guardianKey = generateGuardianKey();
-        await withRetry(() => db.collection('users').doc(user.uid).set({
-            fullName,
-            email,
-            phone,
-            guardianKey,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        }));
-    } catch (err) {
-        handleError(err, 'Signup');
-    }
-});
-
-goToSignupBtn.addEventListener('click', e => {
-    e.preventDefault();
-    showPage('signup');
-});
-
-goToLoginBtn.addEventListener('click', e => {
-    e.preventDefault();
-    showPage('login');
-});
-
-logoutBtn.addEventListener('click', async () => {
-    try {
-        await withRetry(() => auth.signOut());
-    } catch (err) {
-        handleError(err, 'Logout');
-    }
-});
-
-// Profile Management
-async function loadUserProfile() {
-    if (!currentUser) return;
-    try {
-        const doc = await withRetry(() => db.collection('users').doc(currentUser.uid).get());
-        if (doc.exists) {
-            const data = doc.data();
-            profileName.textContent = data.fullName || 'User';
-            profileEmail.textContent = data.email;
-            guardianKeyDisplay.textContent = data.guardianKey;
-            customSosPhrase = data.customSosPhrase || 'start sos';
-            await loadEmergencyContacts();
-        }
-    } catch (err) {
-        handleError(err, 'Profile Load');
-    }
-}
-
-copyKeyBtn.addEventListener('click', async () => {
-    try {
-        await navigator.clipboard.writeText(guardianKeyDisplay.textContent);
-        showToast('success', 'Key Copied', 'SOSecure key copied to clipboard');
-    } catch (err) {
-        handleError(err, 'Copy Key');
-    }
-});
-
-async function loadEmergencyContacts() {
-    try {
-        const querySnapshot = await withRetry(() => db.collection('users').doc(currentUser.uid).collection('emergencyContacts').get());
-        const fragment = document.createDocumentFragment();
-        contactsList.innerHTML = '';
-        if (querySnapshot.empty) {
-            emptyContacts.classList.remove('hidden');
-        } else {
-            emptyContacts.classList.add('hidden');
-            querySnapshot.forEach((doc, index) => {
-                const contactItem = document.createElement('div');
-                contactItem.className = 'contact-item';
-                contactItem.style.setProperty('--contact-index', index);
-                contactItem.innerHTML = `<div class="contact-info"><div class="contact-avatar"><span class="material-icons">person</span></div><div class="contact-details"><h4>${sanitizeInput(doc.data().name || 'Unknown')}</h4><p class="contact-relation">${sanitizeInput(doc.data().relation)}</p></div></div><div class="contact-actions"><button class="btn-icon" data-id="${doc.id}" aria-label="Delete contact"><span class="material-icons">delete</span></button></div>`;
-                contactItem.querySelector('.btn-icon').addEventListener('click', () => deleteContact(doc.id));
-                fragment.appendChild(contactItem);
-            });
-            contactsList.appendChild(fragment);
-        }
-    } catch (err) {
-        handleError(err, 'Contacts Load');
-    }
-}
-
-async function deleteContact(contactId) {
-    try {
-        await withRetry(() => db.collection('users').doc(currentUser.uid).collection('emergencyContacts').doc(contactId).delete());
-        await loadEmergencyContacts();
-    } catch (err) {
-        handleError(err, 'Delete Contact');
-    }
-}
-
-addContactBtn.addEventListener('click', () => showModal(addContactModal));
-closeAddContactBtn.addEventListener('click', () => hideModal(addContactModal));
-cancelAddContactBtn.addEventListener('click', () => hideModal(addContactModal));
-addContactForm.addEventListener('submit', async e => {
-    e.preventDefault();
-    try {
-        const querySnapshot = await withRetry(() => db.collection('users').where('guardianKey', '==', sanitizeInput(contactGuardianKey.value)).get());
-        if (querySnapshot.empty) throw new Error('Invalid SOSecure Key');
-        const contactData = querySnapshot.docs[0].data();
-        await withRetry(() => db.collection('users').doc(currentUser.uid).collection('emergencyContacts').add({
-            guardianKey: sanitizeInput(contactGuardianKey.value),
-            name: contactData.fullName,
-            email: contactData.email,
-            phone: contactData.phone,
-            relation: contactRelation.value,
-            addedAt: firebase.firestore.FieldValue.serverTimestamp()
-        }));
-        hideModal(addContactModal);
-        addContactForm.reset();
-        await loadEmergencyContacts();
-    } catch (err) {
-        handleError(err, 'Add Contact');
-    }
-});
-
-// Map Functions
-function initMap() {
-    const mapStyle = [
-        {"featureType": "all", "elementType": "geometry.fill", "stylers": [{"weight": "2.00"}]},
-        {"featureType": "all", "elementType": "geometry.stroke", "stylers": [{"color": "#f0f0f0"}]},
-        {"featureType": "all", "elementType": "labels.text", "stylers": [{"visibility": "on"}]},
-        {"featureType": "landscape", "elementType": "all", "stylers": [{"color": "#f9f9f9"}]},
-        {"featureType": "landscape", "elementType": "geometry.fill", "stylers": [{"color": "#ffffff"}]},
-        {"featureType": "landscape.man_made", "elementType": "geometry.fill", "stylers": [{"color": "#f5f5f5"}]},
-        {"featureType": "poi", "elementType": "all", "stylers": [{"visibility": "off"}]},
-        {"featureType": "road", "elementType": "all", "stylers": [{"saturation": -100}, {"lightness": 45}]},
-        {"featureType": "road", "elementType": "geometry.fill", "stylers": [{"color": "#eeeeee"}]},
-        {"featureType": "road", "elementType": "labels.text.fill", "stylers": [{"color": "#7b7b7b"}]},
-        {"featureType": "road", "elementType": "labels.text.stroke", "stylers": [{"color": "#ffffff"}]},
-        {"featureType": "road.highway", "elementType": "all", "stylers": [{"visibility": "simplified"}]},
-        {"featureType": "road.arterial", "elementType": "labels.icon", "stylers": [{"visibility": "off"}]},
-        {"featureType": "transit", "elementType": "all", "stylers": [{"visibility": "off"}]},
-        {"featureType": "water", "elementType": "all", "stylers": [{"color": "#d9e8ff"}, {"visibility": "on"}]},
-        {"featureType": "water", "elementType": "geometry.fill", "stylers": [{"color": "#d9e8ff"}]}
-    ];
-    
-    map = new google.maps.Map(mapElement, {
-        center: { lat: 37.7749, lng: -122.4194 },
-        zoom: 15,
-        disableDefaultUI: true,
-        styles: mapStyle,
-        gestureHandling: 'greedy'
-    });
-    
-    directionsService = new google.maps.DirectionsService();
-    directionsRenderer = new google.maps.DirectionsRenderer({
-        map: map,
-        suppressMarkers: true,
-        polylineOptions: { strokeColor: '#333333', strokeWeight: 5 }
-    });
-    
-    userMarker = new google.maps.Marker({
-        map: map,
-        icon: { url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg width="24" height="24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10" fill="#333333"/><circle cx="12" cy="12" r="5" fill="#ffffff"/></svg>'), scaledSize: new google.maps.Size(24, 24) }
-    });
-    
-    originMarker = new google.maps.Marker({ map: null, icon: { url: 'http://maps.google.com/mapfiles/ms/icons/green-dot.png' } });
-    destinationMarker = new google.maps.Marker({ map: null, icon: { url: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png' } });
-    
-    const originAutocomplete = new google.maps.places.Autocomplete(originSearchInput, { fields: ['place_id', 'name', 'geometry'] });
-    const destinationAutocomplete = new google.maps.places.Autocomplete(destinationSearchInput, { fields: ['place_id', 'name', 'geometry'] });
-    
-    originAutocomplete.addListener('place_changed', () => {
-        const place = originAutocomplete.getPlace();
-        if (place.geometry) {
-            originMarker.setPosition(place.geometry.location);
-            originMarker.setMap(map);
-            map.setCenter(place.geometry.location);
-        }
-    });
-    
-    destinationAutocomplete.addListener('place_changed', () => {
-        const place = destinationAutocomplete.getPlace();
-        if (place.geometry) {
-            destinationMarker.setPosition(place.geometry.location);
-            destinationMarker.setMap(map);
-            map.setCenter(place.geometry.location);
-        }
-    });
-    
-    map.addListener('click', () => {
-        if (locationInfo.classList.contains('visible') && !routeDetailsPanel.classList.contains('visible')) {
-            locationInfo.classList.remove('visible');
-        }
-    });
-    
-    map.addListener('drag', () => {
-        if (locationInfo.classList.contains('visible') && !routeDetailsPanel.classList.contains('visible')) {
-            locationInfo.classList.remove('visible');
-        }
-    });
-    
-    updateUserLocation();
-}
-
-function updateUserLocation() {
-    if (!navigator.geolocation) {
-        handleError(new Error('Geolocation not supported'), 'Location');
-        locationAddress.textContent = 'Geolocation not supported. Enter location manually.';
-        return;
-    }
-    navigator.geolocation.getCurrentPosition(
-        position => {
-            if (position.coords.accuracy > 100) {
-                showToast('error', 'Low Accuracy', 'Location accuracy is low. Please ensure GPS is enabled.');
-                setTimeout(updateUserLocation, 2000);
-                return;
-            }
-            currentLocation = { lat: position.coords.latitude, lng: position.coords.longitude };
-            userMarker.setPosition(currentLocation);
-            if (map) {
-                map.setCenter(currentLocation);
-                reverseGeocode(currentLocation);
-            }
-        },
-        err => {
-            if (err.code === err.PERMISSION_DENIED) {
-                showToast('error', 'Location Denied', 'Please enable location services for accurate tracking.');
-                locationAddress.textContent = 'Location access denied. Enable in settings.';
-                setTimeout(() => {
-                    if (confirm('Location services are required for SOSecure. Enable now?')) {
-                        updateUserLocation();
-                    }
-                }, 3000);
-            } else if (err.code === err.POSITION_UNAVAILABLE) {
-                handleError(err, 'Location');
-                locationAddress.textContent = 'Location unavailable. Check GPS signal.';
-            } else {
-                handleError(err, 'Location');
-                locationAddress.textContent = 'Unable to get location. Try again.';
-            }
-        },
-        { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
-    );
-    navigator.geolocation.watchPosition(
-        position => {
-            currentLocation = { lat: position.coords.latitude, lng: position.coords.longitude };
-            userMarker.setPosition(currentLocation);
-            if (map) map.setCenter(currentLocation);
-        },
-        err => console.error(err),
-        { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
-    );
-}
-
-function reverseGeocode(location) {
-    const geocoder = new google.maps.Geocoder();
-    geocoder.geocode({ location }, (results, status) => {
-        if (status === 'OK' && results[0]) {
-            locationName.textContent = results[0].address_components[1]?.long_name || 'Current Location';
-            locationAddress.textContent = results[0].formatted_address;
-        } else {
-            locationAddress.textContent = 'Unable to determine address';
-        }
-    });
-}
-
-// Map Event Listeners
-currentLocationOriginBtn.addEventListener('click', () => {
-    if (currentLocation) {
-        originSearchInput.value = `${currentLocation.lat}, ${currentLocation.lng}`;
-        originMarker.setPosition(currentLocation);
-        originMarker.setMap(map);
-        map.setCenter(currentLocation);
-    } else {
-        updateUserLocation();
-    }
-});
-
-currentLocationDestBtn.addEventListener('click', () => {
-    if (currentLocation) {
-        destinationSearchInput.value = `${currentLocation.lat}, ${currentLocation.lng}`;
-        destinationMarker.setPosition(currentLocation);
-        destinationMarker.setMap(map);
-        map.setCenter(currentLocation);
-    } else {
-        updateUserLocation();
-    }
-});
-
-routeSearchBtn.addEventListener('click', () => {
-    if (!originSearchInput.value || !destinationSearchInput.value) {
-        showToast('error', 'Missing Input', 'Please enter both starting point and destination');
-        return;
-    }
-    calculateRoute();
-});
-
-locationInfoHandle.addEventListener('click', () => {
-    locationInfo.classList.toggle('visible');
-});
-
-shareLocationBtn.addEventListener('click', async () => {
-    if (!currentLocation) {
-        showToast('error', 'No Location', 'Unable to share location');
-        return;
-    }
-    const shareText = `My location: https://maps.google.com/?q=${currentLocation.lat},${currentLocation.lng}`;
-    try {
-        await navigator.clipboard.writeText(shareText);
-        showToast('success', 'Location Copied', 'Location URL copied to clipboard');
-    } catch (err) {
-        handleError(err, 'Share Location');
-    }
-});
-
-startRouteBtn.addEventListener('click', () => {
-    if (!currentRoute) {
-        showToast('error', 'No Route', 'Please calculate a route first');
-        return;
-    }
-    startRouteTracking();
-});
-
-routeDetailsBtn.addEventListener('click', () => {
-    if (!currentRoute) {
-        showToast('error', 'No Route', 'Please calculate a route first');
-        return;
-    }
-    routeDetailsPanel.classList.toggle('visible');
-    if (routeDetailsPanel.classList.contains('visible')) {
-        displayRouteDetails();
-    }
-});
-
-closeRouteDetailsBtn.addEventListener('click', () => {
-    routeDetailsPanel.classList.remove('visible');
-});
-
-drivingModeBtn.addEventListener('click', () => {
-    routeMode = 'DRIVING';
-    drivingModeBtn.classList.add('active');
-    walkingModeBtn.classList.remove('active');
-    if (originSearchInput.value && destinationSearchInput.value) calculateRoute();
-});
-
-walkingModeBtn.addEventListener('click', () => {
-    routeMode = 'WALKING';
-    walkingModeBtn.classList.add('active');
-    drivingModeBtn.classList.remove('active');
-    if (originSearchInput.value && destinationSearchInput.value) calculateRoute();
-});
-
-// Route Functions
-function calculateRoute() {
-    const request = {
-        origin: originSearchInput.value,
-        destination: destinationSearchInput.value,
-        travelMode: routeMode,
-        provideRouteAlternatives: true
-    };
-    
-    directionsService.route(request, (result, status) => {
-        if (status === 'OK') {
-            directionsRenderer.setDirections(result);
-            currentRoute = result.routes[0];
-            alternativeRoutesData = result.routes;
-            selectedRouteIndex = 0;
-            
-            if (!currentRoute.legs || !currentRoute.legs[0]) {
-                showToast('error', 'Route Error', 'Invalid route data received');
-                return;
-            }
-            
-            displayAlternativeRoutes();
-            map.setCenter(currentRoute.legs[0].start_location);
-            locationInfo.classList.add('visible');
-        } else {
-            handleError(new Error(status), 'Route Calculation');
-            showToast('error', 'Route Failed', `Failed to calculate route: ${status}`);
-        }
-    });
-}
-
-function displayAlternativeRoutes() {
-    routeAlternativesContainer.innerHTML = '';
-    alternativeRoutes.style.display = 'block';
-    alternativeRoutesData.forEach((route, index) => {
-        const routeOption = document.createElement('div');
-        routeOption.className = `route-option ${index === selectedRouteIndex ? 'active' : ''}`;
-        routeOption.innerHTML = `<div class="route-option-icon"><span class="material-icons">${routeMode === 'DRIVING' ? 'directions_car' : 'directions_walk'}</span></div><div class="route-option-info"><div class="route-option-title">${route.summary || 'Route ' + (index + 1)}</div><div class="route-option-details">${route.legs[0].distance.text} - ${route.legs[0].duration.text}</div></div>`;
-        routeOption.addEventListener('click', () => {
-            selectedRouteIndex = index;
-            directionsRenderer.setRouteIndex(index);
-            currentRoute = alternativeRoutesData[index];
-            displayRouteDetails();
-            document.querySelectorAll('.route-option').forEach(opt => opt.classList.remove('active'));
-            routeOption.classList.add('active');
-        });
-        routeAlternativesContainer.appendChild(routeOption);
-    });
-}
-
-function displayRouteDetails() {
-    if (!currentRoute || !currentRoute.legs || !currentRoute.legs[0]) {
-        routeDetailsContent.innerHTML = '<p>No route details available</p>';
-        return;
-    }
-
-    routeDetailsContent.innerHTML = '';
-    const steps = currentRoute.legs[0].steps;
-    
-    if (!steps || steps.length === 0) {
-        routeDetailsContent.innerHTML = '<p>No steps available for this route</p>';
-        return;
-    }
-
-    steps.forEach((step, index) => {
-        const stepItem = document.createElement('div');
-        stepItem.className = 'step-item';
-        stepItem.style.setProperty('--step-index', index);
-        
-        const instructions = step.instructions ? DOMPurify.sanitize(step.instructions) : 'Continue';
-        const distance = step.distance && step.distance.text ? step.distance.text : 'Unknown distance';
-        const duration = step.duration && step.duration.text ? step.duration.text : 'Unknown duration';
-        
-        stepItem.innerHTML = `
-            <div class="step-number">${index + 1}</div>
-            <div class="step-content">
-                ${instructions}
-                <br>
-                <small>${distance} - ${duration}</small>
-            </div>
-        `;
-        routeDetailsContent.appendChild(stepItem);
-    });
-}
-
-function startRouteTracking() {
-    routeProgress.style.display = 'block';
-    const totalDistance = currentRoute.legs[0].distance.value;
-    const totalDuration = currentRoute.legs[0].duration.value;
-    routeUpdateWatcher = setInterval(() => {
-        if (!currentLocation) return;
-        const remainingDistance = google.maps.geometry.spherical.computeDistanceBetween(
-            new google.maps.LatLng(currentLocation.lat, currentLocation.lng),
-            currentRoute.legs[0].end_location
-        );
-        const progress = Math.max(0, (1 - remainingDistance / totalDistance) * 100);
-        routeProgressBar.style.width = `${progress}%`;
-        const elapsedTime = (totalDuration * progress) / 100;
-        const remainingTime = totalDuration - elapsedTime;
-        routeCurrentTime.textContent = `Progress: ${Math.round(progress)}%`;
-        routeEta.textContent = `ETA: ${Math.round(remainingTime / 60)} min`;
-        if (progress >= 100) {
-            clearInterval(routeUpdateWatcher);
-            routeUpdateWatcher = null;
-            routeProgress.style.display = 'none';
-            showToast('success', 'Route Completed', 'You have reached your destination');
-        }
-    }, 5000);
-}
-
-// SOS Functions
-sosButton.addEventListener('click', () => {
-    if (activeSosId) {
-        showModal(sosEndModal);
-    } else {
-        startSosCountdown();
-    }
-});
-
-function startSosCountdown() {
-    showModal(sosConfirmModal);
-    sosCountdown = 10;
-    document.getElementById('sos-timer').textContent = `Time remaining: ${sosCountdown}s`;
-    sosInterval = setInterval(() => {
-        sosCountdown--;
-        document.getElementById('sos-timer').textContent = `Time remaining: ${sosCountdown}s`;
-        if (sosCountdown <= 0) {
-            clearInterval(sosInterval);
-            triggerSosAlert();
-        }
-    }, 1000);
-}
-
-closeSosConfirmBtn.addEventListener('click', () => {
-    clearInterval(sosInterval);
-    hideModal(sosConfirmModal);
-});
-
-cancelSosBtn.addEventListener('click', () => {
-    const passwordInput = document.getElementById('sos-password').value;
-    if (passwordInput === sosPassword) {
-        clearInterval(sosInterval);
-        hideModal(sosConfirmModal);
-    } else {
-        showToast('error', 'Invalid Password', 'Incorrect password to cancel SOS');
-    }
-});
-
-confirmSosBtn.addEventListener('click', () => {
-    clearInterval(sosInterval);
-    triggerSosAlert();
-});
-
-async function triggerSosAlert() {
-    if (!currentLocation) {
-        showToast('error', 'No Location', 'Cannot send SOS without location');
-        hideModal(sosConfirmModal);
-        return;
-    }
-    try {
-        const sosDoc = await withRetry(() => db.collection('sosAlerts').add({
-            userId: currentUser.uid,
-            name: profileName.textContent,
-            location: new firebase.firestore.GeoPoint(currentLocation.lat, currentLocation.lng),
-            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-            status: 'active'
-        }));
-        activeSosId = sosDoc.id;
-        sosIcon.textContent = 'sos';
-        hideModal(sosConfirmModal);
-        notifyEmergencyContacts();
-    } catch (err) {
-        handleError(err, 'SOS Alert');
-    }
-}
-
-async function notifyEmergencyContacts() {
-    try {
-        const contacts = await withRetry(() => db.collection('users').doc(currentUser.uid).collection('emergencyContacts').get());
-        contacts.forEach(doc => {
-            const contact = doc.data();
-            db.collection('users').where('email', '==', contact.email).get().then(querySnapshot => {
-                querySnapshot.forEach(contactDoc => {
-                    db.collection('users').doc(contactDoc.id).collection('notifications').add({
-                        type: 'sos',
-                        message: `${profileName.textContent} has triggered an SOS alert! Location: ${currentLocation.lat}, ${currentLocation.lng}`,
-                        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                        location: new firebase.firestore.GeoPoint(currentLocation.lat, currentLocation.lng)
-                    });
-                });
-            });
-        });
-    } catch (err) {
-        handleError(err, 'Notify Contacts');
-    }
-}
-
-closeSosEndBtn.addEventListener('click', () => hideModal(sosEndModal));
-cancelEndSosBtn.addEventListener('click', () => hideModal(sosEndModal));
-confirmEndSosBtn.addEventListener('click', async () => {
-    const passwordInput = document.getElementById('sos-end-password').value;
-    if (passwordInput === sosPassword) {
-        try {
-            await withRetry(() => db.collection('sosAlerts').doc(activeSosId).update({ status: 'resolved' }));
-            activeSosId = null;
-            sosIcon.textContent = 'emergency';
-            hideModal(sosEndModal);
-            showToast('success', 'SOS Ended', 'SOS alert has been resolved');
-        } catch (err) {
-            handleError(err, 'End SOS');
-        }
-    } else {
-        showToast('error', 'Invalid Password', 'Incorrect password to end SOS');
-    }
-});
-
-navigateToBtn.addEventListener('click', () => {
-    if (lastSosLocation) {
-        originSearchInput.value = `${currentLocation.lat}, ${currentLocation.lng}`;
-        destinationSearchInput.value = `${lastSosLocation.lat}, ${lastSosLocation.lng}`;
-        calculateRoute();
-        emergencyNotification.classList.remove('active');
-    }
-});
-
-closeEmergencyNotificationBtn.addEventListener('click', () => {
-    emergencyNotification.classList.remove('active');
-});
-
-function listenForSosAlerts() {
-    db.collection('users').doc(currentUser.uid).collection('notifications').where('type', '==', 'sos').onSnapshot(snapshot => {
-        snapshot.docChanges().forEach(change => {
-            if (change.type === 'added') {
-                const data = change.doc.data();
-                if (!firstSosReceived[change.doc.id]) {
-                    showEmergencyNotification(data.message, data.location);
-                    firstSosReceived[change.doc.id] = true;
-                }
-            }
-        });
-    });
-}
-
-// Custom SOS Phrase
-customSosBtn.addEventListener('click', () => showModal(customSosModal));
-closeCustomSosBtn.addEventListener('click', () => hideModal(customSosModal));
-cancelCustomSosBtn.addEventListener('click', () => hideModal(customSosModal));
-customSosForm.addEventListener('submit', async e => {
-    e.preventDefault();
-    const phrase = sanitizeInput(customSosInput.value.trim().toLowerCase());
-    if (phrase.split(' ').length > 5) {
-        showToast('error', 'Invalid Phrase', 'Phrase must be 5 words or less');
-        return;
-    }
-    try {
-        await withRetry(() => db.collection('users').doc(currentUser.uid).update({ customSosPhrase: phrase }));
-        customSosPhrase = phrase;
-        hideModal(customSosModal);
-        customSosForm.reset();
-        showToast('success', 'Phrase Saved', 'Custom SOS phrase updated');
-    } catch (err) {
-        handleError(err, 'Save SOS Phrase');
-    }
-});
-
-async function loadCustomSosPhrase() {
-    try {
-        const doc = await withRetry(() => db.collection('users').doc(currentUser.uid).get());
-        if (doc.exists) {
-            customSosPhrase = doc.data().customSosPhrase || 'start sos';
-        }
-    } catch (err) {
-        handleError(err, 'Load SOS Phrase');
-    }
-}
-
-function initSpeechRecognition() {
-    if (!('webkitSpeechRecognition' in window)) return;
-    recognition = new webkitSpeechRecognition();
-    recognition.continuous = true;
-    recognition.interimResults = false;
-    recognition.lang = 'en-US';
-    recognition.onresult = event => {
-        const transcript = event.results[event.results.length - 1][0].transcript.trim().toLowerCase();
-        const currentTime = Date.now();
-        if (transcript.includes(customSosPhrase) && currentTime - lastSosTriggerTime > 5000) {
-            lastSosTriggerTime = currentTime;
-            startSosCountdown();
-        }
-    };
-    recognition.onerror = err => console.error('Speech recognition error:', err);
-    recognition.onend = () => {
-        if (isListening && currentUser) recognition.start();
-    };
-    if (!isListening) {
-        recognition.start();
-        isListening = true;
-    }
-}
-
-// Navigation
-navItems.forEach(item => {
-    item.addEventListener('click', e => {
-        e.preventDefault();
-        if (item.dataset.page !== 'sos') showPage(item.dataset.page);
-    });
-});
-    </script>
-    </body>
+</body>
 </html>
