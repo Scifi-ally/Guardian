@@ -6,9 +6,9 @@
     <title>Guardian - Women's Safety App</title>
     <link href="https://fonts.cdnfonts.com/css/geist-mono" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
     <style>
         * {margin: 0;padding: 0;box-sizing: border-box;outline: none;font-family: 'Geist Mono', monospace;-webkit-tap-highlight-color: transparent;}
         :root {--primary: black;--sos: #D32F2F;--black: #000000;--white: #FFFFFF;--gray-100: #F5F5F5;--gray-200: #E0E0E0;--gray-300: #CCCCCC;--gray-500: #777777;--gray-700: #333333;--gray-900: #1A1A1A;--border-radius: 12px;}
@@ -75,14 +75,12 @@
         .bottom-nav-item.active {color: var(--black);}
         .bottom-nav-item .material-icons {font-size: 28px;margin-bottom: 4px;}
         .sos-nav-item {width: 50%;margin-top: -32px;}
-        .sos-nav-button {background: linear-gradient(135deg, var(--sos), #B71C1C);color: var(--white);width: 72px;height: 72px;border-radius: 50%;display: flex;align-items: center;justify-content: center;margin-bottom: 4px;box-shadow: 0 6px 16px rgba(211,47,47,0.4);transition: transform 0.3s ease, box-shadow 0.3s ease;}
+        .sos-nav-button {background: linear-gradient(135deg, var(--sos), #B71C1C);color: var(--white);width: 80px;height: 80px;border-radius: 50%;display: flex;align-items: center;justify-content: center;margin-bottom: 4px;box-shadow: 0 6px 16px rgba(211,47,47,0.4);transition: transform 0.3s ease, box-shadow 0.3s ease;}
         .sos-nav-button:hover {transform: scale(1.15);box-shadow: 0 8px 20px rgba(211,47,47,0.6);opacity: 0.9;}
         .sos-nav-button:active {transform: scale(0.95);}
-        .sos-nav-button .material-icons {font-size: 28px;margin-bottom: 0;}
+        .sos-nav-button .material-icons {font-size: 32px;margin-bottom: 0;}
         .map-container {overflow-x: hidden;position: fixed;top: 0;left: 0;right: 0;bottom: 80px;width: 100%;height: calc(100vh - 80px);overflow: hidden;z-index: 0;}
-        #map {overflow-x: hidden;
-    width: 100%;
-    max-width: 100%;position: absolute;top: 0;bottom: 0;left: 0;right: 0;z-index: 1;touch-action: none;}
+        #map {overflow-x: hidden;width: 100%;max-width: 100%;position: absolute;top: 0;bottom: 0;left: 0;right: 0;z-index: 1;touch-action: none;}
         .map-search-container {position: absolute;top: 20px;left: 20px;right: 20px;background: var(--white);border-radius: 12px;padding: 8px;box-shadow: 0 2px 8px rgba(0,0,0,0.1);z-index: 100;transition: transform 0.4s cubic-bezier(0.4,0,0.2,1);opacity: 0;transform: translateY(-20px);animation: slideInDown 0.5s ease forwards;}
         .map-search {display: flex;align-items: center;padding: 4px;}
         .search-icon {display: flex;align-items: center;justify-content: center;width: 48px;height: 48px;color: var(--gray-500);transition: transform 0.2s ease;}
@@ -201,6 +199,8 @@
         .emergency-notification .notification-close:hover {transform: scale(1.1);}
         .notification-btn {background-color: rgba(255,255,255,0.2);border: none;color: var(--white);padding: 8px 12px;border-radius: 4px;cursor: pointer;transition: background-color 0.3s ease, transform 0.2s ease;}
         .notification-btn:hover {background-color: rgba(255,255,255,0.3);transform: scale(1.05);}
+        #speech-indicator { width: 15%; font-size: 8px; }
+        #speech-indicator .material-icons { font-size: 20px; }
         @keyframes fadeInUp {from {opacity: 0;transform: translateY(20px);}to {opacity: 1;transform: translateY(0);}}
         @keyframes fadeIn {from {opacity: 0;}to {opacity: 1;}}
         @keyframes slideInDown {from {transform: translateY(-20px);opacity: 0;}to {transform: translateY(0);opacity: 1;}}
@@ -208,9 +208,7 @@
         @keyframes slideInLeft {from {transform: translateX(20px);opacity: 0;}to {transform: translateX(0);opacity: 1;}}
         @keyframes slideDown {from {top: -100px;}to {top: 20px;}}
         @keyframes pulse {0% {transform: scale(1);}50% {transform: scale(1.1);}100% {transform: scale(1);}}
-        #home-page {
-    overflow-x: hidden;
-}
+        #home-page { overflow-x: hidden; }
     </style>
 </head>
 <body>
@@ -354,6 +352,10 @@
                     <span class="material-icons">mic</span>
                     <span>Custom SOS Phrase</span>
                 </div>
+                <div class="settings-item" id="toggle-speech-btn" aria-label="Toggle speech recognition">
+                    <span class="material-icons">mic</span>
+                    <span>Enable SOS Phrase Detection</span>
+                </div>
                 <div class="settings-item" id="logout-btn" aria-label="Log out">
                     <span class="material-icons">logout</span>
                     <span>Logout</span>
@@ -368,6 +370,7 @@
             <span>SOS</span>
         </a>
         <a href="#" class="bottom-nav-item" data-page="profile" aria-label="Go to profile page"><span class="material-icons">person</span><span>Profile</span></a>
+        <div id="speech-indicator" class="bottom-nav-item hidden"><span class="material-icons">mic</span><span>Listening</span></div>
     </div>
     <div id="add-contact-modal" class="modal-overlay" role="dialog" aria-labelledby="add-contact-title">
         <div class="modal">
@@ -473,921 +476,975 @@
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/2.4.5/purify.min.js"></script>
     <script>
-       const firebaseConfig = {
-        apiKey: "AIzaSyAv2LUHlRxvadYD2ok9zs426TxIEpXCGWA",
-        authDomain: "guardian-4a206.firebaseapp.com",
-        projectId: "guardian-4a206",
-        storageBucket: "guardian-4a206.firebasestorage.app",
-        messagingSenderId: "249797346737",
-        appId: "1:249797346737:web:29edab4d045345742d6990",
-        measurementId: "G-X35KJKEPEB"
-    };
-    
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
-    
-    const DOM = {
-        pages: document.querySelectorAll('.page'),
-        bottomNav: document.getElementById('bottom-nav'),
-        navItems: document.querySelectorAll('.bottom-nav-item'),
-        loginForm: document.getElementById('login-form'),
-        loginEmail: document.getElementById('login-email'),
-        loginPassword: document.getElementById('login-password'),
-        signupForm: document.getElementById('signup-form'),
-        signupFullName: document.getElementById('signup-fullname'),
-        signupEmail: document.getElementById('signup-email'),
-        signupPhone: document.getElementById('signup-phone'),
-        signupPassword: document.getElementById('signup-password'),
-        goToSignupBtn: document.getElementById('go-to-signup'),
-        goToLoginBtn: document.getElementById('go-to-login'),
-        profileName: document.getElementById('profile-name'),
-        profileEmail: document.getElementById('profile-email'),
-        guardianKeyDisplay: document.getElementById('guardian-key'),
-        copyKeyBtn: document.getElementById('copy-key-btn'),
-        contactsList: document.getElementById('contacts-list'),
-        emptyContacts: document.getElementById('empty-contacts'),
-        addContactBtn: document.getElementById('add-contact-btn'),
-        addContactModal: document.getElementById('add-contact-modal'),
-        closeAddContactBtn: document.getElementById('close-add-contact'),
-        cancelAddContactBtn: document.getElementById('cancel-add-contact'),
-        addContactForm: document.getElementById('add-contact-form'),
-        contactGuardianKey: document.getElementById('contact-guardian-key'),
-        contactRelation: document.getElementById('contact-relation'),
-        logoutBtn: document.getElementById('logout-btn'),
-        sosButton: document.getElementById('sos-button'),
-        sosIcon: document.getElementById('sos-icon'),
-        sosConfirmModal: document.getElementById('sos-confirm-modal'),
-        closeSosConfirmBtn: document.getElementById('close-sos-confirm'),
-        cancelSosBtn: document.getElementById('cancel-sos'),
-        confirmSosBtn: document.getElementById('confirm-sos'),
-        sosEndModal: document.getElementById('sos-end-modal'),
-        closeSosEndBtn: document.getElementById('close-sos-end'),
-        cancelEndSosBtn: document.getElementById('cancel-end-sos'),
-        confirmEndSosBtn: document.getElementById('confirm-end-sos'),
-        emergencyNotification: document.getElementById('emergency-notification'),
-        sosNotificationMessage: document.getElementById('sos-notification-message'),
-        navigateToBtn: document.getElementById('navigate-to-btn'),
-        closeEmergencyNotificationBtn: document.getElementById('close-emergency-notification'),
-        mapElement: document.getElementById('map'),
-        originSearchInput: document.getElementById('origin-search-input'),
-        destinationSearchInput: document.getElementById('destination-search-input'),
-        currentLocationOriginBtn: document.getElementById('current-location-origin-btn'),
-        currentLocationDestBtn: document.getElementById('current-location-dest-btn'),
-        routeSearchBtn: document.getElementById('route-search-btn'),
-        locationInfo: document.getElementById('location-info'),
-        locationInfoHandle: document.getElementById('location-info-handle'),
-        locationName: document.getElementById('location-name'),
-        locationAddress: document.getElementById('location-address'),
-        shareLocationBtn: document.getElementById('share-location-btn'),
-        startRouteBtn: document.getElementById('start-route-btn'),
-        routeDetailsBtn: document.getElementById('route-details-btn'),
-        routeDetailsPanel: document.getElementById('route-details-panel'),
-        closeRouteDetailsBtn: document.getElementById('close-route-details'),
-        routeDetailsContent: document.getElementById('route-details-content'),
-        routeProgress: document.getElementById('route-progress'),
-        routeProgressBar: document.getElementById('route-progress-bar'),
-        routeCurrentTime: document.getElementById('route-current-time'),
-        routeEta: document.getElementById('route-eta'),
-        alternativeRoutes: document.getElementById('alternative-routes'),
-        routeAlternativesContainer: document.getElementById('route-alternatives-container'),
-        drivingModeBtn: document.getElementById('driving-mode'),
-        walkingModeBtn: document.getElementById('walking-mode'),
-        customSosBtn: document.getElementById('custom-sos-phrase-btn'),
-        customSosModal: document.getElementById('custom-sos-modal'),
-        closeCustomSosBtn: document.getElementById('close-custom-sos'),
-        cancelCustomSosBtn: document.getElementById('cancel-custom-sos'),
-        customSosForm: document.getElementById('custom-sos-form'),
-        customSosInput: document.getElementById('custom-sos-phrase'),
-        toastContainer: document.getElementById('toast-container'),
-        sosTimer: document.getElementById('sos-timer'),
-        sosPassword: document.getElementById('sos-password'),
-        sosEndPassword: document.getElementById('sos-end-password')
-    };
-    
-    let state = {
-        currentUser: null,
-        map: null,
-        userMarker: null,
-        originMarker: null,
-        destinationMarker: null,
-        currentLocation: null,
-        directionsService: null,
-        directionsRenderer: null,
-        routeMode: 'WALKING',
-        currentRoute: null,
-        alternativeRoutesData: [],
-        selectedRouteIndex: 0,
-        routeUpdateWatcher: null,
-        sosCountdown: 10,
-        sosInterval: null,
-        activeSosId: null,
-        lastSosLocation: null,
-        firstSosReceived: {},
-        customSosPhrase: 'help me',
-        recognition: null,
-        isListening: false,
-        lastSosTriggerTime: 0,
-        recognitionRetryCount: 0,
-        maxRetries: 5
-    };
-    
-    const sosPassword = "stop123";
-    
-    const sanitizeInput = input => DOMPurify.sanitize(input, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] });
-    
-    const debounce = (func, wait) => {
-        let timeout;
-        return (...args) => {
-            clearTimeout(timeout);
-            timeout = setTimeout(() => func(...args), wait);
+        const firebaseConfig = {
+            apiKey: "AIzaSyAv2LUHlRxvadYD2ok9zs426TxIEpXCGWA",
+            authDomain: "guardian-4a206.firebaseapp.com",
+            projectId: "guardian-4a206",
+            storageBucket: "guardian-4a206.firebasestorage.app",
+            messagingSenderId: "249797346737",
+            appId: "1:249797346737:web:29edab4d045345742d6990",
+            measurementId: "G-X35KJKEPEB"
         };
-    };
-    
-    const handleError = (err, context = 'Operation') => {
-        console.error(JSON.stringify({ timestamp: new Date().toISOString(), message: `${context} Error`, error: err.message || err }));
-        showToast('error', `${context} Failed`, err.message || 'An unexpected error occurred');
-    };
-    
-    const withRetry = async (fn, retries = 3, delay = 1000) => {
-        for (let i = 0; i < retries; i++) {
+
+        const app = firebase.initializeApp(firebaseConfig);
+        const auth = firebase.getAuth(app);
+        const db = firebase.getFirestore(app);
+
+        firebase.enablePersistence(db).catch(err => {
+            console.error('Offline persistence error:', err);
+            showToast('error', 'Offline Mode', 'Some features may be limited offline');
+        });
+
+        const DOM = {
+            pages: document.querySelectorAll('.page'),
+            bottomNav: document.getElementById('bottom-nav'),
+            navItems: document.querySelectorAll('.bottom-nav-item'),
+            loginForm: document.getElementById('login-form'),
+            loginEmail: document.getElementById('login-email'),
+            loginPassword: document.getElementById('login-password'),
+            signupForm: document.getElementById('signup-form'),
+            signupFullName: document.getElementById('signup-fullname'),
+            signupEmail: document.getElementById('signup-email'),
+            signupPhone: document.getElementById('signup-phone'),
+            signupPassword: document.getElementById('signup-password'),
+            goToSignupBtn: document.getElementById('go-to-signup'),
+            goToLoginBtn: document.getElementById('go-to-login'),
+            profileName: document.getElementById('profile-name'),
+            profileEmail: document.getElementById('profile-email'),
+            guardianKeyDisplay: document.getElementById('guardian-key'),
+            copyKeyBtn: document.getElementById('copy-key-btn'),
+            contactsList: document.getElementById('contacts-list'),
+            emptyContacts: document.getElementById('empty-contacts'),
+            addContactBtn: document.getElementById('add-contact-btn'),
+            addContactModal: document.getElementById('add-contact-modal'),
+            closeAddContactBtn: document.getElementById('close-add-contact'),
+            cancelAddContactBtn: document.getElementById('cancel-add-contact'),
+            addContactForm: document.getElementById('add-contact-form'),
+            contactGuardianKey: document.getElementById('contact-guardian-key'),
+            contactRelation: document.getElementById('contact-relation'),
+            logoutBtn: document.getElementById('logout-btn'),
+            sosButton: document.getElementById('sos-button'),
+            sosIcon: document.getElementById('sos-icon'),
+            sosConfirmModal: document.getElementById('sos-confirm-modal'),
+            closeSosConfirmBtn: document.getElementById('close-sos-confirm'),
+            cancelSosBtn: document.getElementById('cancel-sos'),
+            confirmSosBtn: document.getElementById('confirm-sos'),
+            sosEndModal: document.getElementById('sos-end-modal'),
+            closeSosEndBtn: document.getElementById('close-sos-end'),
+            cancelEndSosBtn: document.getElementById('cancel-end-sos'),
+            confirmEndSosBtn: document.getElementById('confirm-end-sos'),
+            emergencyNotification: document.getElementById('emergency-notification'),
+            sosNotificationMessage: document.getElementById('sos-notification-message'),
+            navigateToBtn: document.getElementById('navigate-to-btn'),
+            closeEmergencyNotificationBtn: document.getElementById('close-emergency-notification'),
+            mapElement: document.getElementById('map'),
+            originSearchInput: document.getElementById('origin-search-input'),
+            destinationSearchInput: document.getElementById('destination-search-input'),
+            currentLocationOriginBtn: document.getElementById('current-location-origin-btn'),
+            currentLocationDestBtn: document.getElementById('current-location-dest-btn'),
+            routeSearchBtn: document.getElementById('route-search-btn'),
+            locationInfo: document.getElementById('location-info'),
+            locationInfoHandle: document.getElementById('location-info-handle'),
+            locationName: document.getElementById('location-name'),
+            locationAddress: document.getElementById('location-address'),
+            shareLocationBtn: document.getElementById('share-location-btn'),
+            startRouteBtn: document.getElementById('start-route-btn'),
+            routeDetailsBtn: document.getElementById('route-details-btn'),
+            routeDetailsPanel: document.getElementById('route-details-panel'),
+            closeRouteDetailsBtn: document.getElementById('close-route-details'),
+            routeDetailsContent: document.getElementById('route-details-content'),
+            routeProgress: document.getElementById('route-progress'),
+            routeProgressBar: document.getElementById('route-progress-bar'),
+            routeCurrentTime: document.getElementById('route-current-time'),
+            routeEta: document.getElementById('route-eta'),
+            alternativeRoutes: document.getElementById('alternative-routes'),
+            routeAlternativesContainer: document.getElementById('route-alternatives-container'),
+            drivingModeBtn: document.getElementById('driving-mode'),
+            walkingModeBtn: document.getElementById('walking-mode'),
+            customSosBtn: document.getElementById('custom-sos-phrase-btn'),
+            customSosModal: document.getElementById('custom-sos-modal'),
+            closeCustomSosBtn: document.getElementById('close
+
+-custom-sos'),
+            cancelCustomSosBtn: document.getElementById('cancel-custom-sos'),
+            customSosForm: document.getElementById('custom-sos-form'),
+            customSosInput: document.getElementById('custom-sos-phrase'),
+            toastContainer: document.getElementById('toast-container'),
+            sosTimer: document.getElementById('sos-timer'),
+            sosPassword: document.getElementById('sos-password'),
+            sosEndPassword: document.getElementById('sos-end-password'),
+            speechIndicator: document.getElementById('speech-indicator'),
+            toggleSpeechBtn: document.getElementById('toggle-speech-btn')
+        };
+
+        let state = {
+            currentUser: null,
+            map: null,
+            userMarker: null,
+            originMarker: null,
+            destinationMarker: null,
+            currentLocation: null,
+            directionsService: null,
+            directionsRenderer: null,
+            routeMode: 'WALKING',
+            currentRoute: null,
+            alternativeRoutesData: [],
+            selectedRouteIndex: 0,
+            routeUpdateWatcher: null,
+            sosCountdown: 10,
+            sosInterval: null,
+            activeSosId: null,
+            lastSosLocation: null,
+            firstSosReceived: {},
+            customSosPhrase: 'help me',
+            recognition: null,
+            isListening: false,
+            lastSosTriggerTime: 0,
+            recognitionRetryCount: 0,
+            maxRetries: 5,
+            speechRecognitionEnabled: true,
+            sosLocationUpdater: null
+        };
+
+        const sosPassword = "stop123";
+
+        const sanitizeInput = input => DOMPurify.sanitize(input, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] });
+
+        const debounce = (func, wait) => {
+            let timeout;
+            return (...args) => {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func(...args), wait);
+            };
+        };
+
+        const handleError = (err, context = 'Operation') => {
+            console.error(JSON.stringify({ timestamp: new Date().toISOString(), message: `${context} Error`, error: err.message || err }));
+            showToast('error', `${context} Failed`, err.message || 'An unexpected error occurred');
+        };
+
+        const withRetry = async (fn, retries = 3, delay = 1000) => {
+            for (let i = 0; i < retries; i++) {
+                try {
+                    return await fn();
+                } catch (err) {
+                    if (i === retries - 1) throw err;
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                }
+            }
+        };
+
+        const showToast = (type, title, message, duration = 3000) => {
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.innerHTML = `<div class="toast-icon"><span class="material-icons">${type === 'success' ? 'check_circle' : type === 'warning' ? 'warning' : 'error'}</span></div><div class="toast-content"><div class="toast-title">${sanitizeInput(title)}</div><div class="toast-message">${sanitizeInput(message)}</div></div>`;
+            DOM.toastContainer.appendChild(toast);
+            requestAnimationFrame(() => toast.classList.add('show'));
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => DOM.toastContainer.removeChild(toast), 400);
+            }, duration);
+        };
+
+        const showModal = modal => modal && modal.classList.add('active');
+
+        const hideModal = modal => modal && modal.classList.remove('active');
+
+        const showEmergencyNotification = (message, location) => {
+            DOM.sosNotificationMessage.textContent = sanitizeInput(message);
+            DOM.emergencyNotification.classList.add('active');
+            state.lastSosLocation = location;
+            setTimeout(() => DOM.emergencyNotification.classList.remove('active'), 10000);
+        };
+
+        const generateGuardianKey = () => {
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+            let key = '';
+            for (let group = 0; group < 3; group++) {
+                for (let i = 0; i < 4; i++) {
+                    key += chars.charAt(Math.floor(Math.random() * chars.length));
+                }
+                if (group < 2) key += '-';
+            }
+            return key;
+        };
+
+        const loadUserProfile = async () => {
+            if (!state.currentUser) return;
             try {
-                return await fn();
+                const doc = await withRetry(() => firebase.getDoc(firebase.doc(db, 'users', state.currentUser.uid)));
+                if (doc.exists()) {
+                    const data = doc.data();
+                    DOM.profileName.textContent = data.fullName || 'User';
+                    DOM.profileEmail.textContent = data.email;
+                    DOM.guardianKeyDisplay.textContent = data.guardianKey;
+                    state.speechRecognitionEnabled = data.speechRecognitionEnabled !== false;
+                    await loadEmergencyContacts();
+                }
             } catch (err) {
-                if (i === retries - 1) throw err;
-                await new Promise(resolve => setTimeout(resolve, delay));
+                handleError(err, 'Profile Load');
             }
-        }
-    };
-    
-    const showToast = (type, title, message, duration = 3000) => {
-        const toast = document.createElement('div');
-        toast.className = `toast toast-${type}`;
-        toast.innerHTML = `<div class="toast-icon"><span class="material-icons">${type === 'success' ? 'check_circle' : 'error'}</span></div><div class="toast-content"><div class="toast-title">${sanitizeInput(title)}</div><div class="toast-message">${sanitizeInput(message)}</div></div>`;
-        DOM.toastContainer.appendChild(toast);
-        requestAnimationFrame(() => toast.classList.add('show'));
-        setTimeout(() => {
-            toast.classList.remove('show');
-            setTimeout(() => DOM.toastContainer.removeChild(toast), 400);
-        }, duration);
-    };
-    
-    const showModal = modal => modal && modal.classList.add('active');
-    
-    const hideModal = modal => modal && modal.classList.remove('active');
-    
-    const showEmergencyNotification = (message, location) => {
-        DOM.sosNotificationMessage.textContent = sanitizeInput(message);
-        DOM.emergencyNotification.classList.add('active');
-        state.lastSosLocation = location;
-        setTimeout(() => DOM.emergencyNotification.classList.remove('active'), 10000);
-    };
-    
-    const generateGuardianKey = () => {
-        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-        let key = '';
-        for (let group = 0; group < 3; group++) {
-            for (let i = 0; i < 4; i++) {
-                key += chars.charAt(Math.floor(Math.random() * chars.length));
+        };
+
+        const loadEmergencyContacts = async () => {
+            try {
+                const querySnapshot = await withRetry(() => firebase.getDocs(firebase.collection(db, 'users', state.currentUser.uid, 'emergencyContacts')));
+                const fragment = document.createDocumentFragment();
+                DOM.contactsList.innerHTML = '';
+                if (querySnapshot.empty) {
+                    DOM.emptyContacts.classList.remove('hidden');
+                } else {
+                    DOM.emptyContacts.classList.add('hidden');
+                    querySnapshot.forEach((doc, index) => {
+                        const contactItem = document.createElement('div');
+                        contactItem.className = 'contact-item';
+                        contactItem.style.setProperty('--contact-index', index);
+                        contactItem.innerHTML = `<div class="contact-info"><div class="contact-avatar"><span class="material-icons">person</span></div><div class="contact-details"><h4>${sanitizeInput(doc.data().name || 'Unknown')}</h4><p class="contact-relation">${sanitizeInput(doc.data().relation)}</p></div></div><div class="contact-actions"><button class="btn-icon" data-id="${doc.id}" aria-label="Delete contact"><span class="material-icons">delete</span></button></div>`;
+                        contactItem.querySelector('.btn-icon').addEventListener('click', () => deleteContact(doc.id));
+                        fragment.appendChild(contactItem);
+                    });
+                    DOM.contactsList.appendChild(fragment);
+                }
+            } catch (err) {
+                handleError(err, 'Contacts Load');
             }
-            if (group < 2) key += '-';
-        }
-        return key;
-    };
-    
-    const loadUserProfile = async () => {
-        if (!state.currentUser) return;
-        try {
-            const doc = await withRetry(() => db.collection('users').doc(state.currentUser.uid).get());
-            if (doc.exists) {
-                const data = doc.data();
-                DOM.profileName.textContent = data.fullName || 'User';
-                DOM.profileEmail.textContent = data.email;
-                DOM.guardianKeyDisplay.textContent = data.guardianKey;
+        };
+
+        const deleteContact = async contactId => {
+            try {
+                await withRetry(() => firebase.deleteDoc(firebase.doc(db, 'users', state.currentUser.uid, 'emergencyContacts', contactId)));
                 await loadEmergencyContacts();
+            } catch (err) {
+                handleError(err, 'Delete Contact');
             }
-        } catch (err) {
-            handleError(err, 'Profile Load');
-        }
-    };
-    
-    const loadEmergencyContacts = async () => {
-        try {
-            const querySnapshot = await withRetry(() => db.collection('users').doc(state.currentUser.uid).collection('emergencyContacts').get());
-            const fragment = document.createDocumentFragment();
-            DOM.contactsList.innerHTML = '';
-            if (querySnapshot.empty) {
-                DOM.emptyContacts.classList.remove('hidden');
-            } else {
-                DOM.emptyContacts.classList.add('hidden');
-                querySnapshot.forEach((doc, index) => {
-                    const contactItem = document.createElement('div');
-                    contactItem.className = 'contact-item';
-                    contactItem.style.setProperty('--contact-index', index);
-                    contactItem.innerHTML = `<div class="contact-info"><div class="contact-avatar"><span class="material-icons">person</span></div><div class="contact-details"><h4>${sanitizeInput(doc.data().name || 'Unknown')}</h4><p class="contact-relation">${sanitizeInput(doc.data().relation)}</p></div></div><div class="contact-actions"><button class="btn-icon" data-id="${doc.id}" aria-label="Delete contact"><span class="material-icons">delete</span></button></div>`;
-                    contactItem.querySelector('.btn-icon').addEventListener('click', () => deleteContact(doc.id));
-                    fragment.appendChild(contactItem);
-                });
-                DOM.contactsList.appendChild(fragment);
+        };
+
+        const loadCustomSosPhrase = async () => {
+            try {
+                const doc = await withRetry(() => firebase.getDoc(firebase.doc(db, 'users', state.currentUser.uid)));
+                if (doc.exists() && doc.data().customSosPhrase) {
+                    state.customSosPhrase = doc.data().customSosPhrase.toLowerCase();
+                    DOM.customSosInput.value = state.customSosPhrase;
+                }
+            } catch (err) {
+                handleError(err, 'Load SOS Phrase');
             }
-        } catch (err) {
-            handleError(err, 'Contacts Load');
-        }
-    };
-    
-    const deleteContact = async contactId => {
-        try {
-            await withRetry(() => db.collection('users').doc(state.currentUser.uid).collection('emergencyContacts').doc(contactId).delete());
-            await loadEmergencyContacts();
-        } catch (err) {
-            handleError(err, 'Delete Contact');
-        }
-    };
-    
-    const loadCustomSosPhrase = async () => {
-        try {
-            const doc = await withRetry(() => db.collection('users').doc(state.currentUser.uid).get());
-            if (doc.exists && doc.data().customSosPhrase) {
-                state.customSosPhrase = doc.data().customSosPhrase.toLowerCase();
-                DOM.customSosInput.value = state.customSosPhrase;
-            }
-        } catch (err) {
-            handleError(err, 'Load SOS Phrase');
-        }
-    };
-    
-    const listenForSosAlerts = () => {
-        db.collection('users').doc(state.currentUser.uid).collection('notifications')
-            .where('read', '==', false)
-            .onSnapshot(snapshot => {
-                snapshot.docChanges().forEach(change => {
-                    if (change.type === 'added') {
-                        const data = change.doc.data();
-                        if (!state.firstSosReceived[change.doc.id]) {
-                            state.firstSosReceived[change.doc.id] = true;
-                            showEmergencyNotification(data.message, { lat: data.location.latitude, lng: data.location.longitude });
-                            change.doc.ref.update({ read: true });
+        };
+
+        const listenForSosAlerts = () => {
+            firebase.onSnapshot(
+                firebase.query(
+                    firebase.collection(db, 'users', state.currentUser.uid, 'notifications'),
+                    firebase.where('read', '==', false)
+                ),
+                snapshot => {
+                    snapshot.docChanges().forEach(change => {
+                        if (change.type === 'added') {
+                            const data = change.doc.data();
+                            if (!state.firstSosReceived[change.doc.id]) {
+                                state.firstSosReceived[change.doc.id] = true;
+                                showEmergencyNotification(data.message, { lat: data.location.latitude, lng: data.location.longitude });
+                                firebase.updateDoc(change.doc.ref, { read: true });
+                            }
                         }
-                    }
-                });
-            });
-    };
-    
-    const initSpeechRecognition = () => {
-        if (!('webkitSpeechRecognition' in window)) {
-            showToast('error', 'Speech Recognition', 'Not supported in this browser');
-            return;
-        }
-        state.recognition = new webkitSpeechRecognition();
-        state.recognition.continuous = true;
-        state.recognition.interimResults = false;
-        state.recognition.lang = 'en-US';
-        state.recognition.onresult = event => {
-            const transcript = event.results[event.results.length - 1][0].transcript.trim().toLowerCase();
-            if (transcript.includes(state.customSosPhrase) && Date.now() - state.lastSosTriggerTime > 30000) {
-                state.lastSosTriggerTime = Date.now();
-                startSosCountdown();
-            }
+                    });
+                }
+            );
         };
-        state.recognition.onerror = event => {
-            if (event.error === 'no-speech' || event.error === 'aborted') return;
-            handleError(new Error(event.error), 'Speech Recognition');
-            if (state.recognitionRetryCount < state.maxRetries) {
-                state.recognitionRetryCount++;
-                setTimeout(() => {
-                    if (state.recognition && !state.isListening) startSpeechRecognition();
-                }, 2000);
-            }
-        };
-        state.recognition.onend = () => {
-            state.isListening = false;
-            if (state.currentUser && state.recognitionRetryCount < state.maxRetries) {
-                setTimeout(() => startSpeechRecognition(), 1000);
-            }
-        };
-        startSpeechRecognition();
-    };
-    
-    const startSpeechRecognition = () => {
-        if (!state.recognition || state.isListening || !state.currentUser) return;
-        try {
-            state.recognition.start();
-            state.isListening = true;
-            state.recognitionRetryCount = 0;
-        } catch (err) {
-            handleError(err, 'Start Speech Recognition');
-        }
-    };
-    
-    auth.onAuthStateChanged(user => {
-        state.currentUser = user;
-        if (user) {
-            showPage('home');
-            loadUserProfile();
-            loadCustomSosPhrase();
-            listenForSosAlerts();
-            initSpeechRecognition();
-        } else {
-            showPage('login');
-            if (state.recognition && state.isListening) {
+
+        const toggleSpeechRecognition = async (enable) => {
+            if (enable && !state.isListening) {
+                startSpeechRecognition();
+            } else if (!enable && state.isListening) {
                 state.recognition.stop();
                 state.isListening = false;
+                DOM.speechIndicator.classList.add('hidden');
             }
-            if (state.routeUpdateWatcher) {
-                clearInterval(state.routeUpdateWatcher);
-                state.routeUpdateWatcher = null;
+            try {
+                await withRetry(() => firebase.updateDoc(firebase.doc(db, 'users', state.currentUser.uid), { speechRecognitionEnabled: enable }));
+                state.speechRecognitionEnabled = enable;
+                showToast('success', 'Speech Recognition', enable ? 'SOS phrase detection enabled' : 'SOS phrase detection disabled');
+            } catch (err) {
+                handleError(err, 'Toggle Speech Recognition');
             }
-        }
-    });
-    
-    DOM.loginForm.addEventListener('submit', async e => {
-        e.preventDefault();
-        try {
-            await withRetry(() => auth.signInWithEmailAndPassword(sanitizeInput(DOM.loginEmail.value), DOM.loginPassword.value));
-        } catch (err) {
-            handleError(err, 'Login');
-        }
-    });
-    
-    DOM.signupForm.addEventListener('submit', async e => {
-        e.preventDefault();
-        const fullName = sanitizeInput(DOM.signupFullName.value.trim());
-        const email = sanitizeInput(DOM.signupEmail.value.trim());
-        const phone = sanitizeInput(DOM.signupPhone.value.trim());
-        const password = DOM.signupPassword.value;
-        const nameError = document.getElementById('signup-fullname-error');
-        const emailError = document.getElementById('signup-email-error');
-        const phoneError = document.getElementById('signup-phone-error');
-        const passwordError = document.getElementById('signup-password-error');
-        nameError.textContent = '';
-        emailError.textContent = '';
-        phoneError.textContent = '';
-        passwordError.textContent = '';
-        let isValid = true;
-        if (fullName.length < 2) {
-            nameError.textContent = 'Full name must be at least 2 characters';
-            isValid = false;
-        }
-        if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email)) {
-            emailError.textContent = 'Please enter a valid email';
-            isValid = false;
-        }
-        if (!/^\+?(\d{1,3})?[-.\s]?(\d{3})[-.\s]?(\d{3})[-.\s]?(\d{4})$/.test(phone)) {
-            phoneError.textContent = 'Phone must be in format: +123-456-7890 or 123-456-7890';
-            isValid = false;
-        }
-        if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/.test(password)) {
-            passwordError.textContent = 'Password must be 8+ chars with uppercase, lowercase, number, and special char';
-            isValid = false;
-        }
-        if (!isValid) return;
-        try {
-            const userCredential = await withRetry(() => auth.createUserWithEmailAndPassword(email, password));
-            const user = userCredential.user;
-            const guardianKey = generateGuardianKey();
-            await withRetry(() => db.collection('users').doc(user.uid).set({
-                fullName,
-                email,
-                phone,
-                guardianKey,
-                customSosPhrase: state.customSosPhrase,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            }));
-        } catch (err) {
-            handleError(err, 'Signup');
-        }
-    });
-    
-    DOM.goToSignupBtn.addEventListener('click', e => {
-        e.preventDefault();
-        showPage('signup');
-    });
-    
-    DOM.goToLoginBtn.addEventListener('click', e => {
-        e.preventDefault();
-        showPage('login');
-    });
-    
-    DOM.logoutBtn.addEventListener('click', async () => {
-        try {
-            await withRetry(() => auth.signOut());
-        } catch (err) {
-            handleError(err, 'Logout');
-        }
-    });
-    
-    DOM.copyKeyBtn.addEventListener('click', async () => {
-        try {
-            await navigator.clipboard.writeText(DOM.guardianKeyDisplay.textContent);
-            showToast('success', 'Key Copied', 'Guardian key copied to clipboard');
-        } catch (err) {
-            handleError(err, 'Copy Key');
-        }
-    });
-    
-    DOM.addContactBtn.addEventListener('click', () => showModal(DOM.addContactModal));
-    DOM.closeAddContactBtn.addEventListener('click', () => hideModal(DOM.addContactModal));
-    DOM.cancelAddContactBtn.addEventListener('click', () => hideModal(DOM.addContactModal));
-    
-    DOM.addContactForm.addEventListener('submit', async e => {
-        e.preventDefault();
-        try {
-            const querySnapshot = await withRetry(() => db.collection('users').where('guardianKey', '==', sanitizeInput(DOM.contactGuardianKey.value)).get());
-            if (querySnapshot.empty) throw new Error('Invalid Guardian Key');
-            const contactData = querySnapshot.docs[0].data();
-            await withRetry(() => db.collection('users').doc(state.currentUser.uid).collection('emergencyContacts').add({
-                guardianKey: sanitizeInput(DOM.contactGuardianKey.value),
-                name: contactData.fullName,
-                email: contactData.email,
-                phone: contactData.phone,
-                relation: DOM.contactRelation.value,
-                addedAt: firebase.firestore.FieldValue.serverTimestamp()
-            }));
-            hideModal(DOM.addContactModal);
-            DOM.addContactForm.reset();
-            await loadEmergencyContacts();
-        } catch (err) {
-            handleError(err, 'Add Contact');
-        }
-    });
-    
-    const loadGoogleMaps = () => {
-        if (window.google && window.google.maps) {
-            window.initMap();
-            return;
-        }
-        const script = document.createElement('script');
-        script.src = 'https://maps.googleapis.com/maps/api/js?key=AIzaSyA41wHVKnsb1RNhcftpHS5qNwvYz59nXIE&libraries=places&callback=initMap';
-        script.async = true;
-        script.defer = true;
-        document.head.appendChild(script);
-    };
-    
-    function initMap() {
-        const mapStyle = [
-            {"featureType": "all", "elementType": "geometry.fill", "stylers": [{"weight": "2.00"}]},
-            {"featureType": "all", "elementType": "geometry.stroke", "stylers": [{"color": "#f0f0f0"}]},
-            {"featureType": "all", "elementType": "labels.text", "stylers": [{"visibility": "on"}]},
-            {"featureType": "landscape", "elementType": "all", "stylers": [{"color": "#f9f9f9"}]},
-            {"featureType": "landscape", "elementType": "geometry.fill", "stylers": [{"color": "#ffffff"}]},
-            {"featureType": "landscape.man_made", "elementType": "geometry.fill", "stylers": [{"color": "#f5f5f5"}]},
-            {"featureType": "poi", "elementType": "all", "stylers": [{"visibility": "off"}]},
-            {"featureType": "road", "elementType": "all", "stylers": [{"saturation": -100}, {"lightness": 45}]},
-            {"featureType": "road", "elementType": "geometry.fill", "stylers": [{"color": "#eeeeee"}]},
-            {"featureType": "road", "elementType": "labels.text.fill", "stylers": [{"color": "#7b7b7b"}]},
-            {"featureType": "road", "elementType": "labels.text.stroke", "stylers": [{"color": "#ffffff"}]},
-            {"featureType": "road.highway", "elementType": "all", "stylers": [{"visibility": "simplified"}]},
-            {"featureType": "road.arterial", "elementType": "labels.icon", "stylers": [{"visibility": "off"}]},
-            {"featureType": "transit", "elementType": "all", "stylers": [{"visibility": "off"}]},
-            {"featureType": "water", "elementType": "all", "stylers": [{"color": "#d9e8ff"}, {"visibility": "on"}]},
-            {"featureType": "water", "elementType": "geometry.fill", "stylers": [{"color": "#d9e8ff"}]}
-        ];
-        state.map = new google.maps.Map(DOM.mapElement, {
-            center: { lat: 37.7749, lng: -122.4194 },
-            zoom: 15,
-            disableDefaultUI: true,
-            styles: mapStyle,
-            gestureHandling: 'greedy'
-        });
-        state.directionsService = new google.maps.DirectionsService();
-        state.directionsRenderer = new google.maps.DirectionsRenderer({
-            map: state.map,
-            suppressMarkers: true,
-            polylineOptions: { strokeColor: '#333333', strokeWeight: 5 }
-        });
-        state.userMarker = new google.maps.Marker({
-            map: state.map,
-            icon: { url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg width="24" height="24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10" fill="#333333"/><circle cx="12" cy="12" r="5" fill="#ffffff"/></svg>'), scaledSize: new google.maps.Size(24, 24) }
-        });
-        state.originMarker = new google.maps.Marker({ map: null, icon: { url: 'http://maps.google.com/mapfiles/ms/icons/green-dot.png' } });
-        state.destinationMarker = new google.maps.Marker({ map: null, icon: { url: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png' } });
-        const originAutocomplete = new google.maps.places.Autocomplete(DOM.originSearchInput, { fields: ['place_id', 'name', 'geometry'] });
-        const destinationAutocomplete = new google.maps.places.Autocomplete(DOM.destinationSearchInput, { fields: ['place_id', 'name', 'geometry'] });
-        originAutocomplete.addListener('place_changed', () => {
-            const place = originAutocomplete.getPlace();
-            if (place.geometry) {
-                state.originMarker.setPosition(place.geometry.location);
-                state.originMarker.setMap(state.map);
-                state.map.setCenter(place.geometry.location);
+        };
+
+        const initSpeechRecognition = () => {
+            if (!('webkitSpeechRecognition' in window)) {
+                showToast('error', 'Speech Recognition', 'Not supported in this browser');
+                return;
             }
-        });
-        destinationAutocomplete.addListener('place_changed', () => {
-            const place = destinationAutocomplete.getPlace();
-            if (place.geometry) {
-                state.destinationMarker.setPosition(place.geometry.location);
-                state.destinationMarker.setMap(state.map);
-                state.map.setCenter(place.geometry.location);
-            }
-        });
-        state.map.addListener('click', () => {
-            if (DOM.locationInfo.classList.contains('visible') && !DOM.routeDetailsPanel.classList.contains('visible')) {
-                DOM.locationInfo.classList.remove('visible');
-            }
-        });
-        state.map.addListener('drag', () => {
-            if (DOM.locationInfo.classList.contains('visible') && !DOM.routeDetailsPanel.classList.contains('visible')) {
-                DOM.locationInfo.classList.remove('visible');
-            }
-        });
-        updateUserLocation();
-    }
-    
-    window.initMap = initMap;
-    
-    const updateUserLocation = () => {
-        if (!navigator.geolocation) {
-            handleError(new Error('Geolocation not supported'), 'Location');
-            DOM.locationAddress.textContent = 'Geolocation not supported. Enter location manually.';
-            return;
-        }
-        navigator.geolocation.getCurrentPosition(
-            position => {
-                state.currentLocation = { lat: position.coords.latitude, lng: position.coords.longitude };
-                state.userMarker.setPosition(state.currentLocation);
-                if (state.map) {
-                    state.map.setCenter(state.currentLocation);
-                    reverseGeocode(state.currentLocation);
+            navigator.permissions.query({ name: 'microphone' }).then(result => {
+                if (result.state === 'denied') {
+                    showToast('error', 'Microphone Access', 'Enable microphone permissions for SOS phrase detection');
+                    return;
                 }
-            },
-            err => {
-                handleError(err, 'Location');
-                DOM.locationAddress.textContent = 'Unable to get location. Enter manually.';
-            },
-            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-        );
-    };
-    
-    const reverseGeocode = location => {
-        const geocoder = new google.maps.Geocoder();
-        geocoder.geocode({ location }, (results, status) => {
-            if (status === 'OK' && results[0]) {
-                DOM.locationAddress.textContent = results[0].formatted_address;
-            } else {
-                DOM.locationAddress.textContent = 'Address not found';
-            }
-        });
-    };
-    
-    DOM.currentLocationOriginBtn.addEventListener('click', () => {
-        if (state.currentLocation) {
-            DOM.originSearchInput.value = 'Current Location';
-            state.originMarker.setPosition(state.currentLocation);
-            state.originMarker.setMap(state.map);
-        } else {
-            updateUserLocation();
-        }
-    });
-    
-    DOM.currentLocationDestBtn.addEventListener('click', () => {
-        if (state.currentLocation) {
-            DOM.destinationSearchInput.value = 'Current Location';
-            state.destinationMarker.setPosition(state.currentLocation);
-            state.destinationMarker.setMap(state.map);
-        } else {
-            updateUserLocation();
-        }
-    });
-    
-    DOM.routeSearchBtn.addEventListener('click', () => calculateRoute());
-    
-    const calculateRoute = () => {
-        const origin = state.originMarker.getPosition() || state.currentLocation;
-        const destination = state.destinationMarker.getPosition();
-        if (!origin || !destination) {
-            showToast('error', 'Route Error', 'Please set both origin and destination');
-            return;
-        }
-        state.directionsService.route({
-            origin,
-            destination,
-            travelMode: google.maps.TravelMode[state.routeMode],
-            provideRouteAlternatives: true
-        }, (result, status) => {
-            if (status === 'OK') {
-                state.directionsRenderer.setDirections(result);
-                state.currentRoute = result.routes[0];
-                state.alternativeRoutesData = result.routes;
-                state.selectedRouteIndex = 0;
-                displayRouteAlternatives();
-                DOM.locationInfo.classList.add('visible');
-                DOM.routeProgress.style.display = 'block';
-                DOM.alternativeRoutes.style.display = 'block';
-                updateRouteDetails();
-            } else {
-                handleError(new Error('Directions request failed'), 'Route');
-            }
-        });
-    };
-    
-    const displayRouteAlternatives = () => {
-        DOM.routeAlternativesContainer.innerHTML = '';
-        state.alternativeRoutesData.forEach((route, index) => {
-            const option = document.createElement('div');
-            option.className = `route-option ${index === state.selectedRouteIndex ? 'active' : ''}`;
-            option.innerHTML = `<div class="route-option-icon"><span class="material-icons">${state.routeMode === 'WALKING' ? 'directions_walk' : 'directions_car'}</span></div><div class="route-option-info"><div class="route-option-title">${route.summary || `Route ${index + 1}`}</div><div class="route-option-details">${route.legs[0].distance.text} - ${route.legs[0].duration.text}</div></div>`;
-            option.addEventListener('click', () => {
-                state.selectedRouteIndex = index;
-                state.currentRoute = route;
-                state.directionsRenderer.setRouteIndex(index);
-                updateRouteDetails();
-                DOM.routeAlternativesContainer.querySelectorAll('.route-option').forEach(opt => opt.classList.remove('active'));
-                option.classList.add('active');
+                if (result.state === 'prompt') {
+                    showToast('info', 'Microphone Access', 'Please allow microphone access when prompted');
+                }
+                state.recognition = new webkitSpeechRecognition();
+                state.recognition.continuous = true;
+                state.recognition.interimResults = false;
+                state.recognition.lang = 'en-US';
+                state.recognition.onresult = event => {
+                    const transcript = event.results[event.results.length - 1][0].transcript.trim().toLowerCase();
+                    if (transcript.includes(state.customSosPhrase) && Date.now() - state.lastSosTriggerTime > 30000) {
+                        state.lastSosTriggerTime = Date.now();
+                        startSosCountdown();
+                    }
+                };
+                state.recognition.onerror = event => {
+                    if (event.error === 'no-speech' || event.error === 'aborted') return;
+                    handleError(new Error(event.error), 'Speech Recognition');
+                    if (state.recognitionRetryCount < state.maxRetries) {
+                        state.recognitionRetryCount++;
+                        setTimeout(() => {
+                            if (state.recognition && !state.isListening) startSpeechRecognition();
+                        }, 2000);
+                    }
+                };
+                state.recognition.onend = () => {
+                    state.isListening = false;
+                    DOM.speechIndicator.classList.add('hidden');
+                    if (state.currentUser && state.recognitionRetryCount < state.maxRetries && state.speechRecognitionEnabled) {
+                        setTimeout(() => startSpeechRecognition(), 1000);
+                    }
+                };
+                if (state.speechRecognitionEnabled) startSpeechRecognition();
             });
-            DOM.routeAlternativesContainer.appendChild(option);
-        });
-    };
-    
-    const updateRouteDetails = () => {
-        DOM.routeDetailsContent.innerHTML = '';
-        state.currentRoute.legs[0].steps.forEach((step, index) => {
-            const stepItem = document.createElement('div');
-            stepItem.className = 'step-item';
-            stepItem.style.setProperty('--step-index', index);
-            stepItem.innerHTML = `<div class="step-number">${index + 1}</div><div class="step-content">${step.instructions}</div>`;
-            DOM.routeDetailsContent.appendChild(stepItem);
-        });
-        updateRouteProgress();
-    };
-    
-    const updateRouteProgress = () => {
-        if (!state.currentRoute || !state.currentLocation) return;
-        const leg = state.currentRoute.legs[0];
-        const totalDistance = leg.distance.value;
-        let traveledDistance = 0;
-        for (let i = 0; i < leg.steps.length; i++) {
-            const step = leg.steps[i];
-            const stepPath = google.maps.geometry.encoding.decodePath(step.polyline.points);
-            for (let j = 0; j < stepPath.length; j++) {
-                const distanceToStep = google.maps.geometry.spherical.computeDistanceBetween(state.currentLocation, stepPath[j]);
-                if (distanceToStep < 50) {
-                    traveledDistance = leg.steps.slice(0, i + 1).reduce((sum, s) => sum + s.distance.value, 0);
-                    break;
+        };
+
+        const startSpeechRecognition = () => {
+            if (!state.recognition || state.isListening || !state.currentUser || !state.speechRecognitionEnabled) return;
+            try {
+                state.recognition.start();
+                state.isListening = true;
+                state.recognitionRetryCount = 0;
+                DOM.speechIndicator.classList.remove('hidden');
+                showToast('success', 'Listening', 'SOS phrase detection active');
+            } catch (err) {
+                handleError(err, 'Start Speech Recognition');
+            }
+        };
+
+        firebase.onAuthStateChanged(auth, user => {
+            state.currentUser = user;
+            if (user) {
+                showPage('home');
+                loadUserProfile();
+                loadCustomSosPhrase();
+                listenForSosAlerts();
+                initSpeechRecognition();
+            } else {
+                showPage('login');
+                if (state.recognition && state.isListening) {
+                    state.recognition.stop();
+                    state.isListening = false;
+                    DOM.speechIndicator.classList.add('hidden');
+                }
+                if (state.routeUpdateWatcher) {
+                    clearInterval(state.routeUpdateWatcher);
+                    state.routeUpdateWatcher = null;
+                }
+                if (state.sosLocationUpdater) {
+                    clearInterval(state.sosLocationUpdater);
+                    state.sosLocationUpdater = null;
                 }
             }
-        }
-        const progress = Math.min((traveledDistance / totalDistance) * 100, 100);
-        DOM.routeProgressBar.style.width = `${progress}%`;
-        DOM.routeCurrentTime.textContent = `Distance: ${leg.distance.text}`;
-        DOM.routeEta.textContent = `ETA: ${leg.duration.text}`;
-        if (progress >= 100 && state.routeUpdateWatcher) {
-            clearInterval(state.routeUpdateWatcher);
-            state.routeUpdateWatcher = null;
-            showToast('success', 'Route Completed', 'You have arrived at your destination');
-            resetRoute();
-        }
-    };
-    
-    const resetRoute = () => {
-        DOM.routeProgress.style.display = 'none';
-        DOM.alternativeRoutes.style.display = 'none';
-        DOM.locationInfo.classList.remove('visible');
-        state.directionsRenderer.setDirections({ routes: [] });
-        state.currentRoute = null;
-        state.alternativeRoutesData = [];
-        state.originMarker.setMap(null);
-        state.destinationMarker.setMap(null);
-        DOM.originSearchInput.value = '';
-        DOM.destinationSearchInput.value = '';
-    };
-    
-    DOM.startRouteBtn.addEventListener('click', () => {
-        if (!state.currentRoute) {
-            showToast('error', 'Route Error', 'Please calculate a route first');
-            return;
-        }
-        if (!state.routeUpdateWatcher) {
-            state.routeUpdateWatcher = setInterval(() => {
-                updateUserLocation();
-                updateRouteProgress();
-            }, 5000);
-            showToast('success', 'Route Started', 'Navigation has begun');
-        }
-    });
-    
-    DOM.routeDetailsBtn.addEventListener('click', () => {
-        DOM.routeDetailsPanel.classList.add('visible');
-    });
-    
-    DOM.closeRouteDetailsBtn.addEventListener('click', () => {
-        DOM.routeDetailsPanel.classList.remove('visible');
-    });
-    
-    DOM.walkingModeBtn.addEventListener('click', () => {
-        state.routeMode = 'WALKING';
-        DOM.walkingModeBtn.classList.add('active');
-        DOM.drivingModeBtn.classList.remove('active');
-        if (state.currentRoute) calculateRoute();
-    });
-    
-    DOM.drivingModeBtn.addEventListener('click', () => {
-        state.routeMode = 'DRIVING';
-        DOM.drivingModeBtn.classList.add('active');
-        DOM.walkingModeBtn.classList.remove('active');
-        if (state.currentRoute) calculateRoute();
-    });
-    
-    DOM.shareLocationBtn.addEventListener('click', async () => {
-        if (!state.currentLocation) {
-            showToast('error', 'Location Error', 'Unable to share location');
-            return;
-        }
-        const locationUrl = `https://www.google.com/maps?q=${state.currentLocation.lat},${state.currentLocation.lng}`;
-        try {
-            await navigator.clipboard.writeText(locationUrl);
-            showToast('success', 'Location Shared', 'Location URL copied to clipboard');
-        } catch (err) {
-            handleError(err, 'Share Location');
-        }
-    });
-    
-    DOM.sosButton.addEventListener('click', () => {
-        if (state.activeSosId) {
-            showModal(DOM.sosEndModal);
-        } else {
-            startSosCountdown();
-        }
-    });
-    
-    const startSosCountdown = () => {
-        showModal(DOM.sosConfirmModal);
-        state.sosCountdown = 10;
-        DOM.sosTimer.textContent = `Time remaining: ${state.sosCountdown}s`;
-        state.sosInterval = setInterval(() => {
-            state.sosCountdown--;
-            DOM.sosTimer.textContent = `Time remaining: ${state.sosCountdown}s`;
-            if (state.sosCountdown <= 0) {
-                clearInterval(state.sosInterval);
-                sendSosAlert();
-                hideModal(DOM.sosConfirmModal);
+        });
+
+        DOM.loginForm.addEventListener('submit', async e => {
+            e.preventDefault();
+            try {
+                await withRetry(() => firebase.signInWithEmailAndPassword(auth, sanitizeInput(DOM.loginEmail.value), DOM.loginPassword.value));
+            } catch (err) {
+                handleError(err, 'Login');
             }
-        }, 1000);
-    };
-    
-    DOM.closeSosConfirmBtn.addEventListener('click', () => {
-        if (state.sosInterval) {
-            clearInterval(state.sosInterval);
-            hideModal(DOM.sosConfirmModal);
-        }
-    });
-    
-    DOM.cancelSosBtn.addEventListener('click', () => {
-        if (DOM.sosPassword.value === sosPassword) {
-            clearInterval(state.sosInterval);
-            hideModal(DOM.sosConfirmModal);
-            DOM.sosPassword.value = '';
-        } else {
-            showToast('error', 'Cancel Failed', 'Incorrect password');
-        }
-    });
-    
-    DOM.confirmSosBtn.addEventListener('click', () => {
-        clearInterval(state.sosInterval);
-        sendSosAlert();
-        hideModal(DOM.sosConfirmModal);
-    });
-    
-    const sendSosAlert = async () => {
-        if (!state.currentUser || !state.currentLocation) return;
-        try {
-            const sosData = {
-                userId: state.currentUser.uid,
-                location: new firebase.firestore.GeoPoint(state.currentLocation.lat, state.currentLocation.lng),
-                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                active: true
+        });
+
+        DOM.signupForm.addEventListener('submit', async e => {
+            e.preventDefault();
+            const fullName = sanitizeInput(DOM.signupFullName.value.trim());
+            const email = sanitizeInput(DOM.signupEmail.value.trim());
+            const phone = sanitizeInput(DOM.signupPhone.value.trim());
+            const password = DOM.signupPassword.value;
+            const nameError = document.getElementById('signup-fullname-error');
+            const emailError = document.getElementById('signup-email-error');
+            const phoneError = document.getElementById('signup-phone-error');
+            const passwordError = document.getElementById('signup-password-error');
+            nameError.textContent = '';
+            emailError.textContent = '';
+            phoneError.textContent = '';
+            passwordError.textContent = '';
+            let isValid = true;
+            if (fullName.length < 2) {
+                nameError.textContent = 'Full name must be at least 2 characters';
+                isValid = false;
+            }
+            if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email)) {
+                emailError.textContent = 'Please enter a valid email';
+                isValid = false;
+            }
+            if (!/^\+?(\d{1,3})?[-.\s]?(\d{3})[-.\s]?(\d{3})[-.\s]?(\d{4})$/.test(phone)) {
+                phoneError.textContent = 'Phone must be in format: +123-456-7890 or 123-456-7890';
+                isValid = false;
+            }
+            if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/.test(password)) {
+                passwordError.textContent = 'Password must be 8+ chars with uppercase, lowercase, number, and special char';
+                isValid = false;
+            }
+            if (!isValid) return;
+            try {
+                const userCredential = await withRetry(() => firebase.createUserWithEmailAndPassword(auth, email, password));
+                const user = userCredential.user;
+                const guardianKey = generateGuardianKey();
+                await withRetry(() => firebase.setDoc(firebase.doc(db, 'users', user.uid), {
+                    fullName,
+                    email,
+                    phone,
+                    guardianKey,
+                    customSosPhrase: state.customSosPhrase,
+                    speechRecognitionEnabled: true,
+                    createdAt: firebase.serverTimestamp()
+                }));
+            } catch (err) {
+                handleError(err, 'Signup');
+            }
+        });
+
+        DOM.goToSignupBtn.addEventListener('click', e => {
+            e.preventDefault();
+            showPage('signup');
+        });
+
+        DOM.goToLoginBtn.addEventListener('click', e => {
+            e.preventDefault();
+            showPage('login');
+        });
+
+        DOM.logoutBtn.addEventListener('click', async () => {
+            try {
+                await withRetry(() => firebase.signOut(auth));
+            } catch (err) {
+                handleError(err, 'Logout');
+            }
+        });
+
+        DOM.copyKeyBtn.addEventListener('click', async () => {
+            try {
+                await navigator.clipboard.writeText(DOM.guardianKeyDisplay.textContent);
+                showToast('success', 'Key Copied', 'Guardian key copied to clipboard');
+            } catch (err) {
+                handleError(err, 'Copy Key');
+            }
+        });
+
+        DOM.addContactBtn.addEventListener('click', () => showModal(DOM.addContactModal));
+        DOM.closeAddContactBtn.addEventListener('click', () => hideModal(DOM.addContactModal));
+        DOM.cancelAddContactBtn.addEventListener('click', () => hideModal(DOM.addContactModal));
+
+        DOM.addContactForm.addEventListener('submit', async e => {
+            e.preventDefault();
+            try {
+                const querySnapshot = await withRetry(() => firebase.getDocs(firebase.query(firebase.collection(db, 'users'), firebase.where('guardianKey', '==', sanitizeInput(DOM.contactGuardianKey.value)))));
+                if (querySnapshot.empty) throw new Error('Invalid Guardian Key');
+                const contactData = querySnapshot.docs[0].data();
+                await withRetry(() => firebase.addDoc(firebase.collection(db, 'users', state.currentUser.uid, 'emergencyContacts'), {
+                    guardianKey: sanitizeInput(DOM.contactGuardianKey.value),
+                    name: contactData.fullName,
+                    email: contactData.email,
+                    phone: contactData.phone,
+                    relation: DOM.contactRelation.value,
+                    addedAt: firebase.serverTimestamp()
+                }));
+                hideModal(DOM.addContactModal);
+                DOM.addContactForm.reset();
+                await loadEmergencyContacts();
+            } catch (err) {
+                handleError(err, 'Add Contact');
+            }
+        });
+
+        const loadGoogleMaps = () => {
+            if (document.querySelector('script[src*="maps.googleapis.com"]')) {
+                if (window.google && window.google.maps) window.initMap();
+                return;
+            }
+            const script = document.createElement('script');
+            script.src = 'https://maps.googleapis.com/maps/api/js?key=AIzaSyA41wHVKnsb1RNhcftpHS5qNwvYz59nXIE&libraries=places&callback=initMap';
+            script.async = true;
+            script.defer = true;
+            script.onerror = () => {
+                showToast('error', 'Map Error', 'Map failed to load. Location sharing still available.');
+                DOM.locationAddress.textContent = 'Map unavailable. Use SOS or share location.';
             };
-            const docRef = await withRetry(() => db.collection('sosAlerts').add(sosData));
-            state.activeSosId = docRef.id;
-            DOM.sosIcon.textContent = 'sos';
-            showToast('success', 'SOS Sent', 'Emergency contacts notified');
-            const userDoc = await db.collection('users').doc(state.currentUser.uid).get();
-            const userData = userDoc.data();
-            const contactsSnapshot = await db.collection('users').doc(state.currentUser.uid).collection('emergencyContacts').get();
-            contactsSnapshot.forEach(contact => {
-                const contactData = contact.data();
-                db.collection('users').where('email', '==', contactData.email).get().then(snapshot => {
-                    snapshot.forEach(doc => {
-                        db.collection('users').doc(doc.id).collection('notifications').add({
-                            message: `${userData.fullName} has triggered an SOS alert!`,
-                            location: sosData.location,
-                            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                            read: false
-                        });
+            document.head.appendChild(script);
+        };
+
+        function initMap() {
+            const mapStyle = [
+                {"featureType": "all", "elementType": "geometry.fill", "stylers": [{"weight": "2.00"}]},
+                {"featureType": "all", "elementType": "geometry.stroke", "stylers": [{"color": "#f0f0f0"}]},
+                {"featureType": "all", "elementType": "labels.text", "stylers": [{"visibility": "on"}]},
+                {"featureType": "landscape", "elementType": "all", "stylers": [{"color": "#f9f9f9"}]},
+                {"featureType": "landscape", "elementType": "geometry.fill", "stylers": [{"color": "#ffffff"}]},
+                {"featureType": "landscape.man_made", "elementType": "geometry.fill", "stylers": [{"color": "#f5f5f5"}]},
+                {"featureType": "poi", "elementType": "all", "stylers": [{"visibility": "off"}]},
+                {"featureType": "road", "elementType": "all", "stylers": [{"saturation": -100}, {"lightness": 30}]},
+                {"featureType": "road", "elementType": "geometry", "stylers": [{"color": "#f0f0f0"}]},
+                {"featureType": "road", "elementType": "labels", "stylers": [{"visibility": "on"}]},
+                {"featureType": "road.highway", "elementType": "geometry", "stylers": [{"color": "#d8d8d8"}]},
+                {"featureType": "road.highway", "elementType": "geometry.stroke", "stylers": [{"color": "#e0e0e0"}]},
+                {"featureType": "road.local", "elementType": "geometry", "stylers": [{"color": "#ffffff"}]},
+                {"featureType": "transit", "elementType": "all", "stylers": [{"visibility": "off"}]},
+                {"featureType": "water", "elementType": "all", "stylers": [{"color": "#d4e7f5"}, {"visibility": "on"}]},
+                {"featureType": "water", "elementType": "geometry.fill", "stylers": [{"color": "#d4e7f5"}]}
+            ];
+
+            state.map = new google.maps.Map(DOM.mapElement, {
+                center: { lat: 37.7749, lng: -122.4194 },
+                zoom: 15,
+                styles: mapStyle,
+                disableDefaultUI: true,
+                zoomControl: true,
+                zoomControlOptions: { position: google.maps.ControlPosition.RIGHT_TOP }
+            });
+
+            state.userMarker = new google.maps.Marker({
+                map: state.map,
+                icon: { url: 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png' }
+            });
+
+            state.directionsService = new google.maps.DirectionsService();
+            state.directionsRenderer = new google.maps.DirectionsRenderer({
+                map: state.map,
+                suppressMarkers: true,
+                polylineOptions: { strokeColor: '#333333', strokeWeight: 5 }
+            });
+
+            const originAutocomplete = new google.maps.places.Autocomplete(DOM.originSearchInput, {
+                fields: ['place_id', 'name', 'geometry'],
+                types: ['geocode']
+            });
+            const destinationAutocomplete = new google.maps.places.Autocomplete(DOM.destinationSearchInput, {
+                fields: ['place_id', 'name', 'geometry'],
+                types: ['geocode']
+            });
+
+            originAutocomplete.addListener('place_changed', () => updateRoute());
+            destinationAutocomplete.addListener('place_changed', () => updateRoute());
+
+            updateUserLocation();
+        }
+
+        const updateUserLocation = async () => {
+            if (!navigator.geolocation) {
+                showToast('error', 'Geolocation', 'Geolocation not supported');
+                return;
+            }
+            navigator.geolocation.getCurrentPosition(
+                position => {
+                    state.currentLocation = {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude
+                    };
+                    if (state.map && state.userMarker) {
+                        state.map.setCenter(state.currentLocation);
+                        state.userMarker.setPosition(state.currentLocation);
+                    }
+                    updateLocationInfo();
+                    if (state.currentUser) {
+                        firebase.updateDoc(firebase.doc(db, 'users', state.currentUser.uid), {
+                            lastKnownLocation: new firebase.firestore.GeoPoint(state.currentLocation.lat, state.currentLocation.lng),
+                            lastLocationTimestamp: firebase.firestore.FieldValue.serverTimestamp()
+                        }).catch(err => handleError(err, 'Store Location'));
+                    }
+                },
+                err => {
+                    handleError(err, 'Location Update');
+                    DOM.locationAddress.textContent = 'Location unavailable. Use SOS or share location.';
+                },
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+            );
+        };
+
+        const updateLocationInfo = () => {
+            if (!state.currentLocation) {
+                DOM.locationAddress.textContent = 'Location unavailable';
+                return;
+            }
+            new google.maps.Geocoder().geocode({ location: state.currentLocation }, (results, status) => {
+                if (status === 'OK' && results[0]) {
+                    DOM.locationName.textContent = results[0].address_components[0].short_name;
+                    DOM.locationAddress.textContent = results[0].formatted_address;
+                } else {
+                    DOM.locationAddress.textContent = 'Address not found';
+                }
+            });
+        };
+
+        const updateRoute = debounce(() => {
+            if (!DOM.originSearchInput.value || !DOM.destinationSearchInput.value) return;
+            state.directionsService.route(
+                {
+                    origin: DOM.originSearchInput.value,
+                    destination: DOM.destinationSearchInput.value,
+                    travelMode: google.maps.TravelMode[state.routeMode],
+                    provideRouteAlternatives: true
+                },
+                (result, status) => {
+                    if (status === 'OK') {
+                        state.directionsRenderer.setDirections(result);
+                        state.currentRoute = result.routes[0];
+                        state.alternativeRoutesData = result.routes;
+                        state.selectedRouteIndex = 0;
+                        displayAlternativeRoutes();
+                        updateRouteProgress();
+                    } else {
+                        handleError(new Error(status), 'Route Calculation');
+                    }
+                }
+            );
+        }, 500);
+
+        const displayAlternativeRoutes = () => {
+            DOM.routeAlternativesContainer.innerHTML = '';
+            state.alternativeRoutesData.forEach((route, index) => {
+                const routeOption = document.createElement('div');
+                routeOption.className = `route-option ${index === state.selectedRouteIndex ? 'active' : ''}`;
+                routeOption.innerHTML = `
+                    <div class="route-option-icon"><span class="material-icons">${state.routeMode === 'WALKING' ? 'directions_walk' : 'directions_car'}</span></div>
+                    <div class="route-option-info">
+                        <div class="route-option-title">${route.summary || 'Route ' + (index + 1)}</div>
+                        <div class="route-option-details">${route.legs[0].distance.text} - ${route.legs[0].duration.text}</div>
+                    </div>
+                `;
+                routeOption.addEventListener('click', () => selectRoute(index));
+                DOM.routeAlternativesContainer.appendChild(routeOption);
+            });
+            DOM.alternativeRoutes.style.display = state.alternativeRoutesData.length ? 'block' : 'none';
+        };
+
+        const selectRoute = index => {
+            state.selectedRouteIndex = index;
+            state.directionsRenderer.setRouteIndex(index);
+            state.currentRoute = state.alternativeRoutesData[index];
+            displayAlternativeRoutes();
+            updateRouteProgress();
+            updateRouteDetails();
+        };
+
+        const updateRouteProgress = () => {
+            if (!state.currentRoute) return;
+            DOM.routeProgress.style.display = 'block';
+            const leg = state.currentRoute.legs[0];
+            DOM.routeCurrentTime.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            DOM.routeEta.textContent = `ETA: ${leg.duration.text}`;
+            const distanceRemaining = leg.distance.value;
+            const progress = Math.min(100, (1 - distanceRemaining / leg.distance.value) * 100);
+            DOM.routeProgressBar.style.width = `${progress}%`;
+        };
+
+        const updateRouteDetails = () => {
+            if (!state.currentRoute) return;
+            DOM.routeDetailsContent.innerHTML = '';
+            state.currentRoute.legs[0].steps.forEach((step, index) => {
+                const stepItem = document.createElement('div');
+                stepItem.className = 'step-item';
+                stepItem.style.setProperty('--step-index', index);
+                stepItem.innerHTML = `
+                    <div class="step-number">${index + 1}</div>
+                    <div class="step-content">${step.instructions}</div>
+                `;
+                DOM.routeDetailsContent.appendChild(stepItem);
+            });
+        };
+
+        const startSosCountdown = () => {
+            if (state.activeSosId) {
+                showToast('warning', 'SOS Active', 'An SOS alert is already active');
+                return;
+            }
+            if (navigator.vibrate) navigator.vibrate(200);
+            DOM.sosTimer.textContent = `Time remaining: ${state.sosCountdown}s`;
+            showModal(DOM.sosConfirmModal);
+            state.sosInterval = setInterval(() => {
+                state.sosCountdown--;
+                DOM.sosTimer.textContent = `Time remaining: ${state.sosCountdown}s`;
+                if (state.sosCountdown <= 0) {
+                    clearInterval(state.sosInterval);
+                    sendSosAlert();
+                }
+            }, 1000);
+        };
+
+        const sendSosAlert = async () => {
+            clearInterval(state.sosInterval);
+            hideModal(DOM.sosConfirmModal);
+            state.sosCountdown = 10;
+            let sosLocation = state.currentLocation;
+            if (!sosLocation) {
+                try {
+                    const userDoc = await firebase.getDoc(firebase.doc(db, 'users', state.currentUser.uid));
+                    const lastLocation = userDoc.data().lastKnownLocation;
+                    if (lastLocation) {
+                        sosLocation = { lat: lastLocation.latitude, lng: lastLocation.longitude };
+                        showToast('warning', 'Location Fallback', 'Using last known location for SOS');
+                    } else {
+                        showToast('error', 'Location Error', 'Unable to determine location');
+                        return;
+                    }
+                } catch (err) {
+                    handleError(err, 'Fetch Last Location');
+                    return;
+                }
+            }
+            try {
+                const sosData = {
+                    userId: state.currentUser.uid,
+                    location: new firebase.firestore.GeoPoint(sosLocation.lat, sosLocation.lng),
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    status: 'active'
+                };
+                const docRef = await firebase.addDoc(firebase.collection(db, 'sosAlerts'), sosData);
+                state.activeSosId = docRef.id;
+                DOM.sosIcon.textContent = 'sos';
+                const contactsSnapshot = await firebase.getDocs(firebase.collection(db, 'users', state.currentUser.uid, 'emergencyContacts'));
+                contactsSnapshot.forEach(async contactDoc => {
+                    const contact = contactDoc.data();
+                    await firebase.addDoc(firebase.collection(db, 'users', contactDoc.id, 'notifications'), {
+                        message: `${state.currentUser.displayName || 'User'} has triggered an SOS alert`,
+                        location: new firebase.firestore.GeoPoint(sosLocation.lat, sosLocation.lng),
+                        read: false,
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
                     });
                 });
-            });
-        } catch (err) {
-            handleError(err, 'SOS Alert');
-        }
-    };
-    
-    DOM.closeSosEndBtn.addEventListener('click', () => hideModal(DOM.sosEndModal));
-    
-    DOM.cancelEndSosBtn.addEventListener('click', () => hideModal(DOM.sosEndModal));
-    
-    DOM.confirmEndSosBtn.addEventListener('click', async () => {
-        if (DOM.sosEndPassword.value === sosPassword) {
-            try {
-                await withRetry(() => db.collection('sosAlerts').doc(state.activeSosId).update({ active: false }));
+                showToast('success', 'SOS Sent', 'Emergency contacts notified');
+                state.sosLocationUpdater = setInterval(async () => {
+                    if (!state.activeSosId || !state.currentLocation) return;
+                    await firebase.updateDoc(firebase.doc(db, 'sosAlerts', state.activeSosId), {
+                        location: new firebase.firestore.GeoPoint(state.currentLocation.lat, state.currentLocation.lng),
+                        lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+                    }).catch(err => handleError(err, 'SOS Location Update'));
+                }, 30000);
+            } catch (err) {
+                if (err.code === 'permission-denied') {
+                    showToast('error', 'SOS Limited', 'Please wait 1 minute before sending another SOS');
+                } else {
+                    handleError(err, 'SOS Alert');
+                }
                 state.activeSosId = null;
                 DOM.sosIcon.textContent = 'emergency';
-                hideModal(DOM.sosEndModal);
-                DOM.sosEndPassword.value = '';
-                showToast('success', 'SOS Ended', 'SOS alert has been terminated');
-            } catch (err) {
-                handleError(err, 'End SOS');
             }
-        } else {
-            showToast('error', 'End SOS Failed', 'Incorrect password');
-        }
-    });
-    
-    DOM.navigateToBtn.addEventListener('click', () => {
-        if (state.lastSosLocation) {
-            DOM.originSearchInput.value = 'Current Location';
-            state.originMarker.setPosition(state.currentLocation);
-            state.originMarker.setMap(state.map);
-            state.destinationMarker.setPosition(state.lastSosLocation);
-            state.destinationMarker.setMap(state.map);
-            calculateRoute();
-            DOM.emergencyNotification.classList.remove('active');
-        }
-    });
-    
-    DOM.closeEmergencyNotificationBtn.addEventListener('click', () => {
-        DOM.emergencyNotification.classList.remove('active');
-    });
-    
-    DOM.customSosBtn.addEventListener('click', () => showModal(DOM.customSosModal));
-    
-    DOM.closeCustomSosBtn.addEventListener('click', () => hideModal(DOM.customSosModal));
-    
-    DOM.cancelCustomSosBtn.addEventListener('click', () => hideModal(DOM.customSosModal));
-    
-    DOM.customSosForm.addEventListener('submit', async e => {
-        e.preventDefault();
-        const phrase = sanitizeInput(DOM.customSosInput.value.trim().toLowerCase());
-        if (phrase.split(' ').length > 5) {
-            showToast('error', 'Invalid Phrase', 'Phrase must be 5 words or fewer');
-            return;
-        }
-        try {
-            await withRetry(() => db.collection('users').doc(state.currentUser.uid).update({ customSosPhrase: phrase }));
-            state.customSosPhrase = phrase;
-            hideModal(DOM.customSosModal);
-            DOM.customSosForm.reset();
-            showToast('success', 'Phrase Updated', 'Custom SOS phrase saved');
-        } catch (err) {
-            handleError(err, 'Save SOS Phrase');
-        }
-    });
-    
-    DOM.navItems.forEach(item => {
-        item.addEventListener('click', e => {
-            e.preventDefault();
-            if (item.dataset.page === 'sos') return;
-            showPage(item.dataset.page);
+        };
+
+        DOM.sosButton.addEventListener('click', () => {
+            if (navigator.vibrate) navigator.vibrate(200);
+            startSosCountdown();
         });
-    });
-    
-    const showPage = pageId => {
-        const currentActive = document.querySelector('.page.active');
-        if (currentActive && currentActive.id === `${pageId}-page`) {
-            if (pageId === 'home' && state.map) {
-                google.maps.event.trigger(state.map, 'resize');
-                if (state.currentLocation) state.map.setCenter(state.currentLocation);
+
+        DOM.cancelSosBtn.addEventListener('click', () => {
+            if (DOM.sosPassword.value === sosPassword) {
+                clearInterval(state.sosInterval);
+                hideModal(DOM.sosConfirmModal);
+                state.sosCountdown = 10;
+                DOM.sosPassword.value = '';
+                showToast('success', 'SOS Cancelled', 'SOS alert cancelled');
+            } else {
+                showToast('error', 'Invalid Password', 'Incorrect password');
             }
-            return;
-        }
-        if (currentActive) {
-            currentActive.classList.add('exiting');
-            setTimeout(() => currentActive.classList.remove('active', 'exiting'), 400);
-        }
-        const page = document.getElementById(pageId + '-page');
-        if (!page) return;
-        page.classList.add('active');
-        const mapContainer = document.querySelector('.map-container');
-        if (pageId === 'home') {
-            mapContainer.style.display = 'block';
-            if (!state.map) loadGoogleMaps();
-            else {
-                google.maps.event.trigger(state.map, 'resize');
-                if (state.currentLocation) state.map.setCenter(state.currentLocation);
+        });
+
+        DOM.confirmSosBtn.addEventListener('click', sendSosAlert);
+
+        DOM.closeSosConfirmBtn.addEventListener('click', () => {
+            clearInterval(state.sosInterval);
+            hideModal(DOM.sosConfirmModal);
+            state.sosCountdown = 10;
+            DOM.sosPassword.value = '';
+        });
+
+        DOM.confirmEndSosBtn.addEventListener('click', async () => {
+            if (DOM.sosEndPassword.value === sosPassword) {
+                try {
+                    await firebase.updateDoc(firebase.doc(db, 'sosAlerts', state.activeSosId), {
+                        status: 'ended',
+                        endTimestamp: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    clearInterval(state.sosLocationUpdater);
+                    state.sosLocationUpdater = null;
+                    state.activeSosId = null;
+                    DOM.sosIcon.textContent = 'emergency';
+                    hideModal(DOM.sosEndModal);
+                    DOM.sosEndPassword.value = '';
+                    showToast('success', 'SOS Ended', 'SOS alert ended');
+                } catch (err) {
+                    handleError(err, 'End SOS');
+                }
+            } else {
+                showToast('error', 'Invalid Password', 'Incorrect password');
             }
-        } else {
-            mapContainer.style.display = 'none';
-        }
-        DOM.navItems.forEach(item => item.classList.toggle('active', item.dataset.page === pageId));
-        if (pageId === 'login' || pageId === 'signup') {
-            DOM.bottomNav.classList.add('hidden');
-        } else if (state.currentUser) {
-            DOM.bottomNav.classList.remove('hidden');
-        }
-    };
-    
-    if (state.currentUser) {
-        showPage('home');
-        loadGoogleMaps();
-    }
+        });
+
+        DOM.closeSosEndBtn.addEventListener('click', () => {
+            hideModal(DOM.sosEndModal);
+            DOM.sosEndPassword.value = '';
+        });
+
+        DOM.cancelEndSosBtn.addEventListener('click', () => {
+            hideModal(DOM.sosEndModal);
+            DOM.sosEndPassword.value = '';
+        });
+
+        DOM.navigateToBtn.addEventListener('click', () => {
+            if (state.lastSosLocation) {
+                DOM.destinationSearchInput.value = `${state.lastSosLocation.lat}, ${state.lastSosLocation.lng}`;
+                updateRoute();
+                showPage('home');
+                DOM.emergencyNotification.classList.remove('active');
+            }
+        });
+
+        DOM.closeEmergencyNotificationBtn.addEventListener('click', () => {
+            DOM.emergencyNotification.classList.remove('active');
+        });
+
+        DOM.customSosBtn.addEventListener('click', () => showModal(DOM.customSosModal));
+        DOM.closeCustomSosBtn.addEventListener('click', () => hideModal(DOM.customSosModal));
+        DOM.cancelCustomSosBtn.addEventListener('click', () => hideModal(DOM.customSosModal));
+
+        DOM.customSosForm.addEventListener('submit', async e => {
+            e.preventDefault();
+            const phrase = sanitizeInput(DOM.customSosInput.value.trim().toLowerCase());
+            if (phrase.split(' ').length > 5) {
+                document.getElementById('custom-sos-error').textContent = 'Phrase must be 5 words or less';
+                return;
+            }
+            try {
+                await withRetry(() => firebase.updateDoc(firebase.doc(db, 'users', state.currentUser.uid), { customSosPhrase: phrase }));
+                state.customSosPhrase = phrase;
+                hideModal(DOM.customSosModal);
+                DOM.customSosForm.reset();
+                showToast('success', 'SOS Phrase Updated', 'Custom SOS phrase saved');
+            } catch (err) {
+                handleError(err, 'Save SOS Phrase');
+            }
+        });
+
+        DOM.shareLocationBtn.addEventListener('click', () => {
+            if (!state.currentLocation) {
+                showToast('error', 'Location Unavailable', 'Cannot share location');
+                return;
+            }
+            const locationUrl = `https://www.google.com/maps?q=${state.currentLocation.lat},${state.currentLocation.lng}`;
+            if (navigator.share) {
+                navigator.share({
+                    title: 'My Location',
+                    text: 'I am here:',
+                    url: locationUrl
+                }).catch(err => handleError(err, 'Share Location'));
+            } else {
+                const smsUrl = `sms:?body=${encodeURIComponent(`I am here: ${locationUrl}`)}`;
+                window.open(smsUrl, '_blank');
+                showToast('success', 'Location Shared', 'Location URL opened in SMS');
+            }
+        });
+
+        DOM.startRouteBtn.addEventListener('click', () => {
+            if (!state.currentRoute) return;
+            DOM.routeProgress.style.display = 'block';
+            if (!state.routeUpdateWatcher) {
+                state.routeUpdateWatcher = setInterval(() => {
+                    updateUserLocation();
+                    updateRouteProgress();
+                }, 30000);
+            }
+        });
+
+        DOM.routeDetailsBtn.addEventListener('click', () => {
+            DOM.routeDetailsPanel.classList.add('visible');
+            updateRouteDetails();
+        });
+
+        DOM.closeRouteDetailsBtn.addEventListener('click', () => {
+            DOM.routeDetailsPanel.classList.remove('visible');
+        });
+
+        DOM.walkingModeBtn.addEventListener('click', () => {
+            state.routeMode = 'WALKING';
+            DOM.walkingModeBtn.classList.add('active');
+            DOM.drivingModeBtn.classList.remove('active');
+            updateRoute();
+        });
+
+        DOM.drivingModeBtn.addEventListener('click', () => {
+            state.routeMode = 'DRIVING';
+            DOM.drivingModeBtn.classList.add('active');
+            DOM.walkingModeBtn.classList.remove('active');
+            updateRoute();
+        });
+
+        DOM.currentLocationOriginBtn.addEventListener('click', () => {
+            if (state.currentLocation) {
+                DOM.originSearchInput.value = `${state.currentLocation.lat}, ${state.currentLocation.lng}`;
+                updateRoute();
+            }
+        });
+
+        DOM.currentLocationDestBtn.addEventListener('click', () => {
+            if (state.currentLocation) {
+                DOM.destinationSearchInput.value = `${state.currentLocation.lat}, ${state.currentLocation.lng}`;
+                updateRoute();
+            }
+        });
+
+        DOM.locationInfoHandle.addEventListener('click', () => {
+            DOM.locationInfo.classList.toggle('visible');
+        });
+
+        DOM.toggleSpeechBtn.addEventListener('click', () => {
+            toggleSpeechRecognition(!state.speechRecognitionEnabled);
+        });
+
+        const showPage = pageId => {
+            DOM.pages.forEach(page => {
+                if (page.id === pageId) {
+                    page.classList.add('active');
+                    page.classList.remove('exiting');
+                } else if (page.classList.contains('active')) {
+                    page.classList.add('exiting');
+                    setTimeout(() => {
+                        page.classList.remove('active', 'exiting');
+                    }, 400);
+                } else {
+                    page.classList.remove('active', 'exiting');
+                }
+            });
+
+            DOM.navItems.forEach(item => {
+                if (item.dataset.page === pageId) {
+                    item.classList.add('active');
+                } else {
+                    item.classList.remove('active');
+                }
+            });
+
+            if (['login', 'signup'].includes(pageId)) {
+                DOM.bottomNav.classList.add('hidden');
+            } else {
+                DOM.bottomNav.classList.remove('hidden');
+                if (pageId === 'home') loadGoogleMaps();
+            }
+        };
+
+        DOM.navItems.forEach(item => {
+            if (item.dataset.page !== 'sos') {
+                item.addEventListener('click', e => {
+                    e.preventDefault();
+                    showPage(item.dataset.page);
+                });
+            }
+        });
     </script>
 </body>
 </html>
